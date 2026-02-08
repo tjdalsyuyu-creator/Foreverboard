@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Mahjong Score Pointer v1.5</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.5</span></div>
+    <div class="meta">
+      <span>국: <b id="roundLabel">E1</b></span>
+      <span>본장: <b id="honbaLabel">0</b></span>
+      <span>공탁: <b id="riichiPotLabel">0</b></span>
+
+      <button id="settingsBtn" class="btn">⚙️ 설정</button>
+      <button id="settleBtn" class="btn">📊 최종정산</button>
+      <button id="undoBtn" class="btn">Undo</button>
+      <button id="resetBtn" class="btn danger">Reset</button>
+    </div>
+  </header>
+
+  <main class="table">
+    <section class="seat seat-top" data-seat="0"></section>
+    <section class="seat seat-right" data-seat="1"></section>
+    <section class="seat seat-bottom" data-seat="2"></section>
+    <section class="seat seat-left" data-seat="3"></section>
+
+    <section class="center">
+      <div class="dealer">
+        친: <b id="dealerName"></b>
+        <button id="nextDealerBtn" class="btn small">친 이동</button>
+      </div>
+
+      <div class="center-actions">
+        <button id="drawBtn" class="btn">유국(テンパイ 정산)</button>
+        <button id="addHonbaBtn" class="btn">본장 +1</button>
+        <button id="subHonbaBtn" class="btn">본장 -1</button>
+      </div>
+
+      <div class="hint">
+        ✔ 멀티론: 중복지급(더블/트리플)<br/>
+        ✔ 공탁: 방총자 기준 “가까운 승자”(동→남→서→북) 1명이 전액 수령<br/>
+        ✔ 최종정산: {(점수 - 리턴) + 오카 + 우마} × 2<br/>
+        ✔ 공동순위: “처음 친” 기준 가까운 좌석 우선<br/>
+        ✔ Reset 시 동 위치 선택 가능
+      </div>
+    </section>
+  </main>
+
+  <dialog id="modal">
+    <form method="dialog" class="modal">
+      <h3 id="modalTitle">Action</h3>
+      <div id="modalBody"></div>
+      <menu class="modal-actions">
+        <button value="cancel" class="btn">취소</button>
+        <button id="modalOk" value="ok" class="btn primary">확인</button>
+      </menu>
+    </form>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
