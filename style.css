@@ -1,167 +1,31 @@
-/* ===== Base ===== */
-* { box-sizing: border-box; }
-:root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
-body { margin: 0; background: #0b1220; color: #eaf0ff; overflow-x: hidden; } /* ✅ 튀어나옴 방지 */
-
-.topbar {
-  display:flex; justify-content:space-between; align-items:center;
-  padding:12px 14px; background:#0f1a33;
-  position:sticky; top:0; z-index:10;
-}
-.brand { font-weight:800; display:flex; gap:8px; align-items:center; }
-.ver { font-size:12px; opacity:0.8; padding:2px 8px; border:1px solid #2a3a66; border-radius:999px; }
-.meta { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-.btn {
-  padding:8px 10px; border:1px solid #2a3a66;
-  background:#111d3b; color:#eaf0ff;
-  border-radius:10px; cursor:pointer;
-}
-.btn:hover { filter:brightness(1.1); }
-.btn.primary { background:#1a3cff; border-color:#1a3cff; }
-.btn.danger { background:#3b1120; border-color:#66334a; }
-.btn.small { padding:6px 8px; border-radius:8px; font-size:12px; }
-
-/* ===== Desktop/Tablet table layout (default) ===== */
-.table {
-  position: relative;
-  height: calc(100vh - 56px);
-  display: grid;
-  grid-template-rows: 1fr 1.2fr 1fr;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 10px;
-  padding: 10px;
-}
-
-.seat {
-  border: 1px solid #213055;
-  border-radius: 16px;
-  background: #0f1730;
-  padding: 10px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  min-width: 0; /* ✅ overflow 방지 */
-}
-
-.seat-top { grid-row:1; grid-column:2; transform: rotate(180deg); }
-.seat-right { grid-row:2; grid-column:3; transform: rotate(-90deg); }
-.seat-bottom { grid-row:3; grid-column:2; }
-.seat-left { grid-row:2; grid-column:1; transform: rotate(90deg); }
-
-.center {
-  grid-row:2; grid-column:2;
-  border: 1px solid #213055;
-  border-radius: 16px;
-  background: #0f1730;
-  padding: 12px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  gap:10px;
-  min-width: 0;
-}
-
-.player-head { display:flex; justify-content:space-between; gap:8px; align-items:center; }
-.player-name { font-weight:900; }
-.badge { padding:2px 8px; border-radius:999px; border:1px solid #2a3a66; font-size:12px; }
-.score { font-size:22px; font-weight:900; letter-spacing:0.3px; }
-.actions { display:flex; gap:8px; flex-wrap:wrap; }
-.hint { opacity:0.85; font-size:12px; line-height:1.4; }
-
-dialog::backdrop { background: rgba(0,0,0,0.6); }
-.modal {
-  min-width: min(860px, 92vw);
-  max-width: 92vw;
-  max-height: 86vh;               /* ✅ 모바일에서도 안 잘리게 */
-  overflow: auto;                  /* ✅ 모달 내부 스크롤 */
-  background:#0f1730; border:1px solid #213055;
-  border-radius: 16px; padding: 12px; color:#eaf0ff;
-}
-.modal-actions { display:flex; justify-content:flex-end; gap:8px; padding:0; margin:12px 0 0; }
-
-.field { display:flex; gap:10px; align-items:center; margin:10px 0; min-width:0; }
-.field label { min-width: 110px; opacity:0.9; }
-.field input, .field select {
-  flex:1; min-width:0;
-  padding:10px; border-radius:12px;
-  border:1px solid #2a3a66; background:#0b1220; color:#eaf0ff;
-}
-.row { display:flex; gap:10px; min-width:0; }
-.row > * { flex:1; min-width:0; }
-
-.grid2 { display:grid; grid-template-columns: 1fr 1fr; gap:10px; min-width:0; }
-.card { border:1px solid #213055; border-radius:14px; padding:10px; background:#0b1220; min-width:0; }
-.small { font-size:12px; opacity:0.85; }
-hr { border:0; border-top:1px solid #213055; margin:10px 0; }
-
-table { width:100%; border-collapse:collapse; }
-td, th { border-bottom:1px solid #213055; padding:8px; text-align:left; }
-th { opacity:0.9; }
-.right { text-align:right; }
-
 /* =========================================================
-   ✅ Mobile Portrait Mode (핵심)
-   - 회전 제거
-   - 세로 스택 레이아웃
-   - 겹침/잘림/튀어나옴 해결
+   ✅ Mobile Landscape Fix
+   - 휴대폰 가로모드(높이 낮음)에서는 4방향 회전 UI가 겹침
+   - 해결: 회전 제거 + 2열(중앙/플레이어) 레이아웃으로 전환
 ========================================================= */
-@media (max-width: 820px) and (orientation: portrait) {
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table {
-    height: auto;                  /* ✅ 100vh 고정 제거 */
+    height: auto;
     min-height: calc(100vh - 56px);
-    display: flex;                 /* ✅ grid -> flex column */
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: 1fr 1fr;  /* ✅ 2열 */
+    grid-template-rows: auto;
     gap: 10px;
   }
 
-  /* ✅ 회전 제거 + grid 위치 무시 */
+  /* ✅ 회전 제거 */
   .seat, .center { transform: none !important; }
-  .seat-top, .seat-right, .seat-bottom, .seat-left, .center {
-    grid-row: auto; grid-column: auto;
-    width: 100%;
-  }
 
-  /* ✅ 순서: 중앙 컨트롤 먼저, 그 아래 플레이어 4명 */
-  .center { order: 0; }
-  .seat-top { order: 1; }
-  .seat-right { order: 2; }
-  .seat-bottom { order: 3; }
-  .seat-left { order: 4; }
+  /* ✅ grid 위치 강제 재배치 */
+  .center { grid-column: 1 / 2; grid-row: 1; }
+  .seat-top { grid-column: 2 / 3; grid-row: 1; }
+  .seat-right { grid-column: 2 / 3; grid-row: 2; }
+  .seat-bottom { grid-column: 1 / 2; grid-row: 2; }
+  .seat-left { grid-column: 1 / 2; grid-row: 3; }
 
-  /* ✅ 상단바 버튼 줄바꿈 안정화 */
-  .meta { gap: 8px; }
+  /* ✅ 좌석/센터 폭 튀어나옴 방지 */
+  .seat, .center { width: 100%; min-width: 0; }
 
-  /* ✅ 모바일에서 글자/점수 크기 최적화 */
-  .score { font-size: 26px; }
-}
-
-/* =========================================================
-   ✅ Touch devices: 터치 영역 확장 (폰/태블릿)
-========================================================= */
-@media (pointer: coarse) {
-  .btn {
-    font-size: 16px;
-    padding: 14px 18px;
-    border-radius: 14px;
-  }
-  .btn.small {
-    font-size: 15px;
-    padding: 12px 16px;
-  }
-  .actions { gap: 12px; }
-  .seat { padding: 14px; }
-}
-
-/* =========================================================
-   ✅ Very small phones: 추가 압축/가독성
-========================================================= */
-@media (max-width: 420px) {
-  .topbar { padding: 10px 10px; }
-  .brand { font-size: 14px; }
-  .score { font-size: 24px; }
-  .field label { min-width: 88px; }
-  .modal { max-height: 88vh; }
-  .grid2 { grid-template-columns: 1fr; }  /* ✅ 모달도 한 열로 */
-  .row { flex-direction: column; }        /* ✅ 입력 줄도 세로로 */
+  /* ✅ 버튼 영역이 너무 좁아지면 줄바꿈 */
+  .actions { gap: 10px; }
 }
