@@ -1,4 +1,4 @@
-// js/state.js v1.6.5+ (add potCount for auto-chombo)
+// js/state.js v1.6.5+ (add depositCountHand)
 import { DEFAULT_NAMES } from "./constants.js";
 
 export function uuid(){
@@ -50,7 +50,8 @@ export function defaultRuntime(ruleSet, handsPlans){
       name:n,
       score:ruleSet.startScore,
       riichi:false,
-      potCount: 0,          // ✅ 공탁(-1000) 누른 횟수 (자동 촌보용)
+      potCount: 0,          // 자동 촌보(공탁 3회) 카운트(국 단위)
+      depositCountHand: 0,  // ✅ 이번 국 공탁 납부(리치/공탁 포함) 횟수
     })),
     roundState: { handsPlanId: hp.id, handIndex:0, dealerIndex:0, honba:0, riichiPot:0 },
     meta: { initialDealerIndex: 0, gameEnded:false },
@@ -122,6 +123,7 @@ export function resetWithEastSelection(app, eastOldIndex){
     p.score = app.ruleSet.startScore;
     p.riichi = false;
     p.potCount = 0;
+    p.depositCountHand = 0;
   }
   app.runtime.roundState.handIndex = 0;
   app.runtime.roundState.honba = 0;
