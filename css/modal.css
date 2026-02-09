@@ -1,14 +1,96 @@
-/* modal.css */
-dialog::backdrop{
-  background: rgba(0,0,0,0.6);
-}
+/* css/modal.css v1.6.5 */
+
+/* Modal base */
+dialog::backdrop{ background: rgba(0,0,0,0.6); }
 
 .modal{
   min-width: min(860px, 92vw);
   max-width: 92vw;
   max-height: 86vh;
+  overflow: auto;
   background: var(--bg-card);
   border:1px solid var(--border-main);
   border-radius:16px;
   padding:12px;
+  color: var(--text-main);
 }
+
+.modal-actions{
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding:0;
+  margin:12px 0 0;
+}
+
+.field{ display:flex; gap:10px; align-items:center; margin:10px 0; min-width:0; }
+.field label{ min-width:110px; opacity:0.9; }
+.field input, .field select{
+  flex:1; min-width:0;
+  padding:10px;
+  border-radius:12px;
+  border:1px solid var(--border-ui);
+  background: var(--bg-chip);
+  color: var(--text-main);
+}
+
+.row{ display:flex; gap:10px; min-width:0; }
+.row > *{ flex:1; min-width:0; }
+
+.grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:10px; min-width:0; }
+
+.card{
+  border:1px solid var(--border-main);
+  border-radius:14px;
+  padding:10px;
+  background: var(--bg-chip);
+  min-width:0;
+}
+
+/* ================================
+   Settings Accordion + Preset Grid
+================================ */
+.settings-accordion{
+  display:grid;
+  gap:10px;
+}
+
+.acc{
+  border:1px solid var(--border-main);
+  border-radius:14px;
+  background: var(--bg-chip);
+  overflow:hidden;
+}
+
+.acc-summary{
+  list-style:none;
+  cursor:pointer;
+  padding:12px 12px;
+  font-weight:800;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.acc-summary::-webkit-details-marker{ display:none; }
+
+.acc-summary::after{
+  content:"▾";
+  opacity:0.8;
+  font-weight:900;
+}
+.acc[open] .acc-summary::after{
+  content:"▴";
+}
+
+.acc-body{
+  padding:10px 12px 12px;
+  border-top:1px solid var(--border-main);
+}
+
+/* preset buttons 2x2 */
+.preset-grid{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+}
+.preset-grid .btn{ width:100%; }
