@@ -1,4 +1,4 @@
-/* style.css v1.6.4 */
+/* style.css v1.6.5 */
 * { box-sizing: border-box; }
 :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
 body { margin: 0; background: #0b1220; color: #eaf0ff; overflow-x: hidden; }
@@ -40,7 +40,7 @@ body.topbar-hidden .table{ height: 100vh; }
   padding: 10px;
 }
 
-/* 전체화면일 때는 테이블이 100vh */
+/* 전체화면일 때 테이블 100vh */
 :fullscreen .table { height: 100vh; }
 :-webkit-full-screen .table { height: 100vh; }
 
@@ -122,7 +122,7 @@ td, th{ border-bottom:1px solid #213055; padding:8px; text-align:left; }
 th{ opacity:0.9; }
 .right{ text-align:right; }
 
-/* ✅ 오버레이 */
+/* 세로 전체화면 안내 오버레이 */
 #rotateHintOverlay{
   position: fixed;
   inset: 0;
@@ -153,10 +153,9 @@ th{ opacity:0.9; }
   line-height: 1.4;
 }
 
-/* ✅ 세로 전체화면(강제 가로 UI 모드) */
-body.fs-force-landscape #rotateHintOverlay{
-  display: flex;
-}
+body.fs-force-landscape #rotateHintOverlay{ display:flex; }
+
+/* 세로 전체화면에서 가로 UI 모드 강제 */
 body.fs-force-landscape .table{
   --s: var(--autoScale, 1);
   transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
@@ -179,17 +178,15 @@ body.fs-force-landscape .table{
   .seat-top, .seat-right, .seat-bottom, .seat-left, .center{
     grid-row:auto; grid-column:auto; width:100%;
   }
-
   .center{ order:0; }
   .seat-top{ order:1; }
   .seat-right{ order:2; }
   .seat-bottom{ order:3; }
   .seat-left{ order:4; }
-
   .score{ font-size:26px; }
 }
 
-/* ✅ 가로+터치+낮은높이: translate/scale */
+/* 가로+터치+낮은높이: translate/scale */
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table{
     --s: var(--autoScale, 1);
@@ -199,7 +196,7 @@ body.fs-force-landscape .table{
   }
 }
 
-/* ✅ 강제 가로 UI 모드에서는 터치를 더 크게 */
+/* 강제 가로 UI 모드에서는 버튼 더 크게 */
 body.fs-force-landscape .btn{
   font-size: 18px;
   padding: 16px 20px;
