@@ -1,11 +1,57 @@
-/* fullscreen.css */
-:fullscreen .table,
-:-webkit-full-screen .table{
-  height:100vh;
+/* css/full-screen.css v1.6.5 */
+
+/* Fullscreen table height */
+:fullscreen .table { height: 100vh; }
+:-webkit-full-screen .table { height: 100vh; }
+
+/* Rotate hint overlay */
+#rotateHintOverlay{
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+  background: rgba(0,0,0,0.65);
+  color: var(--text-main);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+#rotateHintOverlay .box{
+  max-width: 420px;
+  border: 1px solid var(--border-main);
+  border-radius: 16px;
+  background: var(--bg-card);
+  padding: 16px;
+}
+#rotateHintOverlay .title{
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+#rotateHintOverlay .desc{
+  opacity: 0.9;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
+/* Force landscape UI */
+body.fs-force-landscape #rotateHintOverlay{ display:flex; }
+
 body.fs-force-landscape .table{
-  transform: translate(var(--autoTx,0), var(--autoTy,0))
-             scale(var(--autoScale,1));
+  --s: var(--autoScale, 1);
+  transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
   transform-origin: top left;
+  width: calc(100% / var(--s));
+}
+
+/* Bigger touch in force-landscape */
+body.fs-force-landscape .btn{
+  font-size: 18px;
+  padding: 16px 20px;
+  border-radius: 16px;
+}
+body.fs-force-landscape .btn.small{
+  font-size: 16px;
+  padding: 14px 18px;
 }
