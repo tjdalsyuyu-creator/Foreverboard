@@ -1,7 +1,10 @@
-// js/modals/tsumoModal.js v1.6.5+
+// js/modals/tsumoModal.js v1.6.5+ (reset potCount per hand)
 import { pushSnapshot, clearRiichiFlags, dealerAdvance, handAdvance } from "../state.js";
 import { openModal } from "./modalBase.js";
-import { tsumoPays, validateTwoHanShibari, applyPaoIfNeeded, transfer, checkTobiAndEnd } from "../scoring.js";
+import {
+  tsumoPays, validateTwoHanShibari, applyPaoIfNeeded, transfer,
+  checkTobiAndEnd, resetPotCountsPerHand
+} from "../scoring.js";
 
 export function openTsumoModal(app, dom, winner, onDone){
   openModal(dom, "쯔모 (부/판)", `
@@ -27,7 +30,6 @@ export function openTsumoModal(app, dom, winner, onDone){
     const fu = Number(document.getElementById("fu").value);
     const han = Number(document.getElementById("han").value);
 
-    // 2판 묶기
     const v = validateTwoHanShibari(app, han);
     if(!v.ok){ alert(v.message); return false; }
 
@@ -36,11 +38,10 @@ export function openTsumoModal(app, dom, winner, onDone){
     const rs = app.runtime.roundState;
     const pays = tsumoPays(app, winner, fu, han);
 
-    // 파오 처리(쯔모 100% 책임자)
     const paoRaw = document.getElementById("paoSeat")?.value;
     const paoSeat = paoRaw === "" ? null : Number(paoRaw);
+
     const totalFromEach = () => {
-      // 전체 지불 총액(쯔모는 각자 납부 합)
       if(pays.type==="dealerTsumo") return pays.each * 3;
       return pays.dealerPay + pays.childPay + pays.childPay;
     };
@@ -49,12 +50,10 @@ export function openTsumoModal(app, dom, winner, onDone){
     const paoPlan = applyPaoIfNeeded({ app, totalPay, loserSeat:null, paoSeat, isTsumo:true });
 
     if(paoPlan){
-      // 책임자에게서 전액 받아서 승자에게
       for(const part of paoPlan){
         transfer(app, part.from, winner, part.toPay);
       }
     } else {
-      // 일반 분배
       if(pays.type==="dealerTsumo"){
         for(let i=0;i<4;i++) if(i!==winner) transfer(app, i, winner, pays.each);
       } else {
@@ -66,7 +65,6 @@ export function openTsumoModal(app, dom, winner, onDone){
       }
     }
 
-    // 공탁 전액
     if(app.runtime.roundState.riichiPot>0){
       app.runtime.players[winner].score += app.runtime.roundState.riichiPot;
       app.runtime.roundState.riichiPot = 0;
@@ -74,18 +72,18 @@ export function openTsumoModal(app, dom, winner, onDone){
 
     clearRiichiFlags(app);
 
-    // 진행
     if(winner === rs.dealerIndex && app.ruleSet.renchan.onWin){
       app.runtime.roundState.honba += 1;
+      // 국 유지(연장)도 "국 종료"이므로 potCount 리셋
+      resetPotCountsPerHand(app);
     } else {
       app.runtime.roundState.honba = 0;
       dealerAdvance(app);
       handAdvance(app);
+      resetPotCountsPerHand(app);
     }
 
-    // 토비 체크
     checkTobiAndEnd(app);
-
     onDone?.();
   });
 }
