@@ -1,4 +1,4 @@
-// js/state.js v1.6.5+ (options expanded)
+// js/state.js v1.6.5+ (add potCount for auto-chombo)
 import { DEFAULT_NAMES } from "./constants.js";
 
 export function uuid(){
@@ -33,8 +33,6 @@ export function ruleSetTemplate(name="작혼룰"){
     multiRon: { enabled: true },
     renchan: { onWin: true, onTenpai: true },
     endCondition: { handsPlanId: "han-8" },
-
-    // ✅ NEW 옵션들
     options: {
       tobiEnabled: false,
       kiriageMangan: false,
@@ -48,7 +46,12 @@ export function ruleSetTemplate(name="작혼룰"){
 export function defaultRuntime(ruleSet, handsPlans){
   const hp = handsPlans.find(h=>h.id===ruleSet.endCondition.handsPlanId) || handsPlans[0];
   return {
-    players: DEFAULT_NAMES.map(n=>({ name:n, score:ruleSet.startScore, riichi:false })),
+    players: DEFAULT_NAMES.map(n=>({
+      name:n,
+      score:ruleSet.startScore,
+      riichi:false,
+      potCount: 0,          // ✅ 공탁(-1000) 누른 횟수 (자동 촌보용)
+    })),
     roundState: { handsPlanId: hp.id, handIndex:0, dealerIndex:0, honba:0, riichiPot:0 },
     meta: { initialDealerIndex: 0, gameEnded:false },
     history: [],
@@ -118,6 +121,7 @@ export function resetWithEastSelection(app, eastOldIndex){
   for (const p of app.runtime.players){
     p.score = app.ruleSet.startScore;
     p.riichi = false;
+    p.potCount = 0;
   }
   app.runtime.roundState.handIndex = 0;
   app.runtime.roundState.honba = 0;
@@ -137,7 +141,6 @@ export function handAdvance(app){
   app.runtime.roundState.handIndex += 1;
   const hp = currentHandsPlan(app);
   if (app.runtime.roundState.handIndex >= hp.sequence.length) {
-    // 넘어가면 종료로 처리(클램프)
     app.runtime.roundState.handIndex = hp.sequence.length - 1;
     app.runtime.meta.gameEnded = true;
   }
