@@ -1,5 +1,5 @@
-// app.js v1.6.0
-console.log("Mahjong Score Pointer app.js v1.6.0 LOADED");
+// app.js v1.6.1
+console.log("Mahjong Score Pointer app.js v1.6.1 LOADED");
 
 const LS_UI_TOPBAR_HIDDEN = "mjp_ui_topbar_hidden_v1";
 
@@ -18,6 +18,7 @@ const state = {
 };
 
 function $(id){ return document.getElementById(id); }
+function fmt(n){ return Number(n).toLocaleString("ko-KR"); }
 
 function applyTopbarHiddenFromStorage(){
   const hidden = localStorage.getItem(LS_UI_TOPBAR_HIDDEN) === "1";
@@ -43,8 +44,6 @@ function toggleTopbar(){
   applyAutoScaleForMobileLandscape();
 }
 
-function fmt(n){ return Number(n).toLocaleString("ko-KR"); }
-
 function renderStatus(){
   $("roundLabel").textContent = state.handLabel;
   $("honbaLabel").textContent = String(state.honba);
@@ -56,6 +55,7 @@ function renderSeats(){
   document.querySelectorAll(".seat").forEach(seatEl=>{
     const i = Number(seatEl.dataset.seat);
     const p = players[i];
+
     const dealerBadge = (i===state.dealerIndex) ? `<span class="badge">친</span>` : "";
     const riichiBadge = p.riichi ? `<span class="badge riichi">리치✓</span>` : "";
 
@@ -85,33 +85,61 @@ function render(){
   applyAutoScaleForMobileLandscape();
 }
 
-/* ✅ 자동 스케일: 기종 불문
-   - 가로 + 터치 + 낮은 높이일 때만 autoScale을 계산해서 CSS 변수로 넣음 */
+/* ✅ 핵심 수정: 회전된 요소까지 포함한 “실제 바운딩 박스” 기준으로 scale/이동 계산 */
 function applyAutoScaleForMobileLandscape(){
   const isCoarse = matchMedia("(pointer: coarse)").matches;
   const isLandscape = matchMedia("(orientation: landscape)").matches;
-  if(!isCoarse || !isLandscape){
-    document.documentElement.style.removeProperty("--autoScale");
-    return;
-  }
 
-  const table = document.getElementById("tableRoot");
+  // 기본값 리셋
+  document.documentElement.style.setProperty("--autoScale", "1");
+  document.documentElement.style.setProperty("--autoTx", "0px");
+  document.documentElement.style.setProperty("--autoTy", "0px");
+
+  if(!isCoarse || !isLandscape) return;
+
+  const table = $("tableRoot");
   if(!table) return;
 
-  const topbar = document.getElementById("topbar");
+  const topbar = $("topbar");
   const topbarHidden = topbar?.classList.contains("hidden");
   const topH = (!topbarHidden && topbar) ? topbar.getBoundingClientRect().height : 0;
 
+  const availableW = Math.max(240, window.innerWidth - 8);
   const availableH = Math.max(220, window.innerHeight - topH - 8);
 
-  // 스케일 1로 놓고 높이 측정
-  document.documentElement.style.setProperty("--autoScale", "1");
-  const rect = table.getBoundingClientRect();
-  const tableH = Math.max(1, rect.height);
+  // ✅ scale=1 상태에서 모든 요소 바운딩 박스 계산
+  const tableRect = table.getBoundingClientRect();
+  const items = table.querySelectorAll(".seat, .center");
 
-  let s = availableH / tableH;
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  items.forEach(el=>{
+    const r = el.getBoundingClientRect();
+    const x1 = r.left - tableRect.left;
+    const y1 = r.top - tableRect.top;
+    const x2 = r.right - tableRect.left;
+    const y2 = r.bottom - tableRect.top;
+    minX = Math.min(minX, x1);
+    minY = Math.min(minY, y1);
+    maxX = Math.max(maxX, x2);
+    maxY = Math.max(maxY, y2);
+  });
+
+  if(!isFinite(minX) || !isFinite(minY) || !isFinite(maxX) || !isFinite(maxY)) return;
+
+  const requiredW = Math.max(1, maxX - minX);
+  const requiredH = Math.max(1, maxY - minY);
+
+  // scale: 가로/세로 모두 맞추는 최소값
+  let s = Math.min(availableW / requiredW, availableH / requiredH);
   s = Math.max(0.62, Math.min(1, s));
+
+  // translate: scale 후에 적용되므로 *s 반영해서 이동값 계산
+  const tx = (-minX * s);
+  const ty = (-minY * s);
+
   document.documentElement.style.setProperty("--autoScale", String(s));
+  document.documentElement.style.setProperty("--autoTx", `${tx}px`);
+  document.documentElement.style.setProperty("--autoTy", `${ty}px`);
 }
 
 /* Actions */
@@ -139,6 +167,7 @@ document.body.addEventListener("click",(e)=>{
 });
 
 $("toggleTopbarBtn").addEventListener("click", toggleTopbar);
+
 $("nextDealerBtn").addEventListener("click", ()=>{
   state.dealerIndex = (state.dealerIndex + 1) % 4;
   render();
