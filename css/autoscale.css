@@ -1,0 +1,6 @@
+/* autoscale.css */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px){
+  .table{
+    width: calc(100% / var(--autoScale,1));
+  }
+}
