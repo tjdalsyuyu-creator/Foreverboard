@@ -1,4 +1,4 @@
-// js/state.js v1.6.5
+// js/state.js v1.6.5+ (options expanded)
 import { DEFAULT_NAMES } from "./constants.js";
 
 export function uuid(){
@@ -33,6 +33,15 @@ export function ruleSetTemplate(name="작혼룰"){
     multiRon: { enabled: true },
     renchan: { onWin: true, onTenpai: true },
     endCondition: { handsPlanId: "han-8" },
+
+    // ✅ NEW 옵션들
+    options: {
+      tobiEnabled: false,
+      kiriageMangan: false,
+      twoHanShibari: false,
+      paoEnabled: false,
+      orasDealerContinueEvenIfFirst: false,
+    }
   };
 }
 
@@ -41,7 +50,7 @@ export function defaultRuntime(ruleSet, handsPlans){
   return {
     players: DEFAULT_NAMES.map(n=>({ name:n, score:ruleSet.startScore, riichi:false })),
     roundState: { handsPlanId: hp.id, handIndex:0, dealerIndex:0, honba:0, riichiPot:0 },
-    meta: { initialDealerIndex: 0 },
+    meta: { initialDealerIndex: 0, gameEnded:false },
     history: [],
   };
 }
@@ -70,7 +79,6 @@ export function popSnapshot(app){
   app.ruleSets = snap.ruleSets;
   app.activeRuleSetId = snap.activeRuleSetId;
 
-  // restore active ruleset reference
   const restored = app.ruleSets.find(r => r.id === app.activeRuleSetId) || app.ruleSets[0];
   app.ruleSet = restored;
 
@@ -116,6 +124,8 @@ export function resetWithEastSelection(app, eastOldIndex){
   app.runtime.roundState.riichiPot = 0;
   app.runtime.roundState.dealerIndex = 0;
   app.runtime.meta.initialDealerIndex = 0;
+  app.runtime.meta.gameEnded = false;
+
   app.runtime.roundState.handsPlanId = app.ruleSet.endCondition.handsPlanId || app.runtime.roundState.handsPlanId;
 }
 
@@ -127,7 +137,9 @@ export function handAdvance(app){
   app.runtime.roundState.handIndex += 1;
   const hp = currentHandsPlan(app);
   if (app.runtime.roundState.handIndex >= hp.sequence.length) {
+    // 넘어가면 종료로 처리(클램프)
     app.runtime.roundState.handIndex = hp.sequence.length - 1;
+    app.runtime.meta.gameEnded = true;
   }
 }
 
