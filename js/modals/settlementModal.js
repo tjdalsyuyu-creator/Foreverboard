@@ -4,6 +4,7 @@ import { openModal } from "./modalBase.js";
 function fmt(n) {
   return Number(n).toLocaleString("ko-KR");
 }
+
 function fmtK(n) {
   // /1000 환산(1자리 소수)
   return (Number(n) / 1000).toLocaleString("ko-KR", {
@@ -15,9 +16,9 @@ function fmtK(n) {
 export function openSettlementModal(app, dom) {
   const initDealer = app.runtime.meta.initialDealerIndex;
 
-  const returnScore = app.ruleSet.returnScore;      // 예: 30000
-  const oka = app.ruleSet.okaK * 1000;              // 예: 20K => 20000
-  const uma = app.ruleSet.umaK.map((v) => v * 1000);
+  const returnScore = app.ruleSet.returnScore; // 예: 30000
+  const okaPts = app.ruleSet.okaK * 1000; // 예: 20K => 20000
+  const umaPtsByRank = app.ruleSet.umaK.map((v) => v * 1000); // rank별 우마 점수
 
   // 점수 내림차순, 동점이면 "처음 친" 기준 가까운 좌석 우선
   const ranked = [0, 1, 2, 3]
@@ -27,16 +28,14 @@ export function openSettlementModal(app, dom) {
       return (a.i - initDealer + 4) % 4 - (b.i - initDealer + 4) % 4;
     });
 
-  const formula = `{ (점수 - 리턴) + 오카 + 우마 } × 2`;
-  const ruleSummary = `
-    <div class="small" style="opacity:.9; line-height:1.5; margin-bottom:10px;">
-      <div><b>공식</b>: ${formula}</div>
+  const header = `
+    <div class="small" style="opacity:.9; line-height:1.6; margin-bottom:10px;">
+      <div><b>공식</b>: { (점수 - 리턴) + 오카(1등만) + 우마 } × 2</div>
       <div>
-        리턴=${fmt(returnScore)} (${fmtK(returnScore)}),
-        오카=+${app.ruleSet.okaK}K (${fmt(oka)} / ${fmtK(oka)}),
-        우마=[${app.ruleSet.umaK.join(", ")}]K
+        리턴=${fmt(returnScore)}, 오카=${app.ruleSet.okaK}K(1등만), 우마=[${app.ruleSet.umaK.join(
+          ", "
+        )}]K
       </div>
-      <div>동점 타이브레이크: “처음 친”(${app.runtime.players[initDealer].name}) 기준 가까운 좌석 우선</div>
     </div>
   `;
 
@@ -47,16 +46,11 @@ export function openSettlementModal(app, dom) {
           <th>순위</th>
           <th>플레이어</th>
           <th class="right">점수</th>
-          <th class="right">점수(/1000)</th>
           <th class="right">점수-리턴</th>
           <th class="right">(-리턴)/1000</th>
-          <th class="right">오카</th>
           <th class="right">오카(/1000)</th>
-          <th class="right">우마</th>
           <th class="right">우마(/1000)</th>
-          <th class="right">중간합</th>
           <th class="right">중간합(/1000)</th>
-          <th class="right">최종(×2)</th>
           <th class="right">최종(/1000)</th>
         </tr>
       </thead>
@@ -66,10 +60,15 @@ export function openSettlementModal(app, dom) {
             const name = app.runtime.players[r.i].name;
 
             const score = r.score;
-            const base = score - returnScore;          // (점수 - 리턴)
-            const umaPts = uma[idx] ?? 0;              // 랭크별 우마
-            const subtotal = base + oka + umaPts;      // 중간합
-            const final = subtotal * 2;                // 최종
+            const base = score - returnScore; // 점수-리턴
+
+            // ✅ 오카는 1등만 지급
+            const okaThis = idx === 0 ? okaPts : 0;
+
+            const umaThis = umaPtsByRank[idx] ?? 0;
+
+            const subtotal = base + okaThis + umaThis; // 중간합
+            const final = subtotal * 2; // 최종
 
             return `
               <tr>
@@ -77,21 +76,13 @@ export function openSettlementModal(app, dom) {
                 <td>${name}</td>
 
                 <td class="right">${fmt(score)}</td>
-                <td class="right">${fmtK(score)}</td>
-
                 <td class="right">${fmt(base)}</td>
                 <td class="right">${fmtK(base)}</td>
 
-                <td class="right">${fmt(oka)}</td>
-                <td class="right">${fmtK(oka)}</td>
+                <td class="right">${idx === 0 ? fmtK(okaThis) : "-"}</td>
+                <td class="right">${fmtK(umaThis)}</td>
 
-                <td class="right">${fmt(umaPts)}</td>
-                <td class="right">${fmtK(umaPts)}</td>
-
-                <td class="right">${fmt(subtotal)}</td>
                 <td class="right">${fmtK(subtotal)}</td>
-
-                <td class="right"><b>${fmt(final)}</b></td>
                 <td class="right"><b>${fmtK(final)}</b></td>
               </tr>
             `;
@@ -101,5 +92,5 @@ export function openSettlementModal(app, dom) {
     </table>
   `;
 
-  openModal(dom, "최종정산", `${ruleSummary}${table}`, () => true);
+  openModal(dom, "최종정산", `${header}${table}`, () => true);
 }
