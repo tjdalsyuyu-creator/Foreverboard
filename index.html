@@ -1,16 +1,15 @@
-<!-- index.html v1.6.1 -->
+<!-- index.html v1.6.4 -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mahjong Score Pointer v1.6.1</title>
-
-  <link rel="stylesheet" href="style.css?v=1.6.1" />
+  <title>Mahjong Score Pointer v1.6.4</title>
+  <link rel="stylesheet" href="style.css?v=1.6.4" />
 </head>
 <body>
   <header class="topbar" id="topbar">
-    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.1</span></div>
+    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.4</span></div>
     <div class="meta">
       <button id="settingsBtn" class="btn">⚙️ 설정</button>
       <button id="settleBtn" class="btn">📊 최종정산</button>
@@ -30,6 +29,8 @@
         <span>국: <b id="roundLabel">E1</b></span>
         <span>본장: <b id="honbaLabel">0</b></span>
         <span>공탁: <b id="riichiPotLabel">0</b></span>
+
+        <button id="fullscreenBtn" class="btn small">⛶ 전체화면</button>
         <button id="toggleTopbarBtn" class="btn small">상단바 숨김</button>
       </div>
 
@@ -47,12 +48,21 @@
       <div class="hint">
         ✔ 멀티론: 중복지급(더블/트리플)<br/>
         ✔ 공탁: 방총자 기준 “가까운 승자”(동→남→서→북) 1명이 전액 수령<br/>
-        ✔ 최종정산: {(점수 - 리턴) + 오카 + 우마} × 2<br/>
-        ✔ 공동순위: “처음 친” 기준 가까운 좌석 우선<br/>
-        ✔ Reset 시 동 위치 선택 가능
+        ✔ 최종정산: {(점수 - 리턴) + 오카 + 우마} × 2
       </div>
     </section>
   </main>
+
+  <!-- ✅ 세로 전체화면에서 “가로로 돌려주세요” 오버레이 -->
+  <div id="rotateHintOverlay">
+    <div class="box">
+      <div class="title">가로로 돌려주세요</div>
+      <div class="desc">
+        전체화면에서는 가로가 가장 보기 좋아요.<br/>
+        기기를 가로로 돌리면 자동으로 최적화됩니다.
+      </div>
+    </div>
+  </div>
 
   <dialog id="modal">
     <form method="dialog" class="modal">
@@ -65,6 +75,6 @@
     </form>
   </dialog>
 
-  <script src="app.js?v=1.6.1"></script>
+  <script src="app.js?v=1.6.4"></script>
 </body>
 </html>
