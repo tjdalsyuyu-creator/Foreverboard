@@ -1,127 +1,121 @@
-// js/modals/settingsModal.js v1.6.5 FULL
+// js/modals/settingsModal.js v1.6.5 FULL (Accordion + 2x2 Preset Grid)
 import { openModal } from "./modalBase.js";
 import { pushSnapshot } from "../state.js";
 
-/**
- * 설정 모달(풀버전)
- * - 프리셋: 불러오기 / 저장(덮어쓰기) / 다른이름 저장 / 삭제
- * - 국수 플랜 선택
- * - 시작점수 / 리턴점수
- * - 오카(K) / 우마1~4(K)
- * - 멀티론 ON/OFF
- * - 공탁 유국시 누적/초기화
- * - 연장(화료) / 연장(유국텐파이)
- */
 export function openSettingsModal(app, dom, done) {
   const presetOptions = app.ruleSets
-    .map(r => `<option value="${r.id}" ${r.id === app.ruleSet.id ? "selected" : ""}>${escapeHtml(r.name)}</option>`)
+    .map(r => `<option value="${r.id}" ${r.id === app.ruleSet.id ? "selected" : ""}>${esc(r.name)}</option>`)
     .join("");
 
   const handsOptions = app.handsPlans
-    .map(h => `<option value="${h.id}" ${h.id === app.runtime.roundState.handsPlanId ? "selected" : ""}>${escapeHtml(h.name)}</option>`)
+    .map(h => `<option value="${h.id}" ${h.id === app.runtime.roundState.handsPlanId ? "selected" : ""}>${esc(h.name)}</option>`)
     .join("");
 
   openModal(dom, "⚙️ 설정", `
-    <div class="grid2">
+    <div class="settings-accordion">
 
-      <div class="card">
-        <div class="small"><b>프리셋</b></div>
-        <div class="field">
-          <label>선택</label>
-          <select id="presetSel">${presetOptions}</select>
+      <!-- 프리셋 -->
+      <details class="acc" open>
+        <summary class="acc-summary">프리셋</summary>
+        <div class="acc-body">
+
+          <div class="field">
+            <label>선택</label>
+            <select id="presetSel">${presetOptions}</select>
+          </div>
+
+          <div class="preset-grid">
+            <button class="btn" id="presetLoadBtn" type="button">불러오기</button>
+            <button class="btn" id="presetSaveBtn" type="button">저장(덮어쓰기)</button>
+            <button class="btn" id="presetSaveAsBtn" type="button">다른 이름으로 저장</button>
+            <button class="btn danger" id="presetDeleteBtn" type="button">삭제</button>
+          </div>
+
+          <p class="small" style="margin-top:10px;">
+            ※ K 단위: 20 → 20000점 (오카/우마)
+          </p>
         </div>
-        <div class="row">
-          <button class="btn" id="presetLoadBtn" type="button">불러오기</button>
-          <button class="btn" id="presetSaveBtn" type="button">저장(덮어쓰기)</button>
+      </details>
+
+      <!-- 국수 -->
+      <details class="acc">
+        <summary class="acc-summary">국수(Hands Plan)</summary>
+        <div class="acc-body">
+          <div class="field">
+            <label>플랜</label>
+            <select id="handsSel">${handsOptions}</select>
+          </div>
+          <p class="small">플랜 변경은 “다음 국 진행”부터 반영(현재 국 인덱스는 유지).</p>
         </div>
-        <div class="row" style="margin-top:8px;">
-          <button class="btn" id="presetSaveAsBtn" type="button">다른 이름으로 저장</button>
-          <button class="btn danger" id="presetDeleteBtn" type="button">삭제</button>
+      </details>
+
+      <!-- 점수 -->
+      <details class="acc">
+        <summary class="acc-summary">점수</summary>
+        <div class="acc-body">
+          <div class="field"><label>시작점수</label><input id="startScore" type="number" value="${num(app.ruleSet.startScore)}"/></div>
+          <div class="field"><label>리턴점수</label><input id="returnScore" type="number" value="${num(app.ruleSet.returnScore)}"/></div>
+
+          <hr/>
+
+          <div class="field"><label>오카(+K)</label><input id="okaK" type="number" value="${num(app.ruleSet.okaK)}"/></div>
+
+          <div class="row">
+            <div class="field"><label>우마1</label><input id="u1" type="number" value="${num(app.ruleSet.umaK[0])}"/></div>
+            <div class="field"><label>우마2</label><input id="u2" type="number" value="${num(app.ruleSet.umaK[1])}"/></div>
+          </div>
+          <div class="row">
+            <div class="field"><label>우마3</label><input id="u3" type="number" value="${num(app.ruleSet.umaK[2])}"/></div>
+            <div class="field"><label>우마4</label><input id="u4" type="number" value="${num(app.ruleSet.umaK[3])}"/></div>
+          </div>
+
+          <p class="small">
+            최종정산: { (점수-리턴) + 오카 + 우마 } × 2
+          </p>
         </div>
-        <p class="small" style="margin-top:8px;">
-          ※ K 단위: 20 → 20000점으로 계산됨 (오카/우마)
-        </p>
-      </div>
+      </details>
 
-      <div class="card">
-        <div class="small"><b>국수(Hands Plan)</b></div>
-        <div class="field">
-          <label>플랜</label>
-          <select id="handsSel">${handsOptions}</select>
+      <!-- 옵션 -->
+      <details class="acc">
+        <summary class="acc-summary">옵션</summary>
+        <div class="acc-body">
+          <div class="field">
+            <label>멀티론</label>
+            <select id="multiRonEnabled">
+              <option value="true" ${app.ruleSet.multiRon.enabled ? "selected" : ""}>ON (중복지급)</option>
+              <option value="false" ${!app.ruleSet.multiRon.enabled ? "selected" : ""}>OFF</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>공탁 유국시</label>
+            <select id="potCarry">
+              <option value="true" ${app.ruleSet.riichiPotCarryOnDraw ? "selected" : ""}>누적</option>
+              <option value="false" ${!app.ruleSet.riichiPotCarryOnDraw ? "selected" : ""}>초기화</option>
+            </select>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label>연장(화료)</label>
+              <select id="renWin">
+                <option value="true" ${app.ruleSet.renchan.onWin ? "selected" : ""}>ON</option>
+                <option value="false" ${!app.ruleSet.renchan.onWin ? "selected" : ""}>OFF</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>연장(유국텐파이)</label>
+              <select id="renTenpai">
+                <option value="true" ${app.ruleSet.renchan.onTenpai ? "selected" : ""}>ON</option>
+                <option value="false" ${!app.ruleSet.renchan.onTenpai ? "selected" : ""}>OFF</option>
+              </select>
+            </div>
+          </div>
         </div>
-        <p class="small">플랜 변경은 “다음 국 진행”부터 반영(현재 국 인덱스는 유지).</p>
-      </div>
+      </details>
 
-    </div>
-
-    <hr/>
-
-    <div class="grid2">
-
-      <div class="card">
-        <div class="small"><b>기본 점수</b></div>
-        <div class="field"><label>시작점수</label><input id="startScore" type="number" value="${num(app.ruleSet.startScore)}"/></div>
-        <div class="field"><label>리턴점수</label><input id="returnScore" type="number" value="${num(app.ruleSet.returnScore)}"/></div>
-      </div>
-
-      <div class="card">
-        <div class="small"><b>오카/우마 (K 단위)</b></div>
-        <div class="field"><label>오카(+K)</label><input id="okaK" type="number" value="${num(app.ruleSet.okaK)}"/></div>
-        <div class="row">
-          <div class="field"><label>우마1</label><input id="u1" type="number" value="${num(app.ruleSet.umaK[0])}"/></div>
-          <div class="field"><label>우마2</label><input id="u2" type="number" value="${num(app.ruleSet.umaK[1])}"/></div>
-        </div>
-        <div class="row">
-          <div class="field"><label>우마3</label><input id="u3" type="number" value="${num(app.ruleSet.umaK[2])}"/></div>
-          <div class="field"><label>우마4</label><input id="u4" type="number" value="${num(app.ruleSet.umaK[3])}"/></div>
-        </div>
-        <p class="small">
-          최종정산 공식: { (점수-리턴) + 오카 + 우마 } × 2
-        </p>
-      </div>
-
-    </div>
-
-    <hr/>
-
-    <div class="card">
-      <div class="small"><b>옵션</b></div>
-
-      <div class="field">
-        <label>멀티론</label>
-        <select id="multiRonEnabled">
-          <option value="true" ${app.ruleSet.multiRon.enabled ? "selected" : ""}>ON (중복지급)</option>
-          <option value="false" ${!app.ruleSet.multiRon.enabled ? "selected" : ""}>OFF</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>공탁 유국시</label>
-        <select id="potCarry">
-          <option value="true" ${app.ruleSet.riichiPotCarryOnDraw ? "selected" : ""}>누적</option>
-          <option value="false" ${!app.ruleSet.riichiPotCarryOnDraw ? "selected" : ""}>초기화</option>
-        </select>
-      </div>
-
-      <div class="row">
-        <div class="field">
-          <label>연장(화료)</label>
-          <select id="renWin">
-            <option value="true" ${app.ruleSet.renchan.onWin ? "selected" : ""}>ON</option>
-            <option value="false" ${!app.ruleSet.renchan.onWin ? "selected" : ""}>OFF</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>연장(유국텐파이)</label>
-          <select id="renTenpai">
-            <option value="true" ${app.ruleSet.renchan.onTenpai ? "selected" : ""}>ON</option>
-            <option value="false" ${!app.ruleSet.renchan.onTenpai ? "selected" : ""}>OFF</option>
-          </select>
-        </div>
-      </div>
     </div>
   `, () => {
-    // ✅ 확인 버튼: 현재 모달 값들로 룰셋 업데이트
     pushSnapshot(app);
     applyFromUI(app);
     done?.();
@@ -131,9 +125,9 @@ export function openSettingsModal(app, dom, done) {
   wirePresetButtons(app, dom, done);
 }
 
-// ---------------- helpers ----------------
+/* ---------------- helpers ---------------- */
 function num(v){ return (v ?? 0); }
-function escapeHtml(s){
+function esc(s){
   return String(s).replace(/[&<>"']/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 }
 
@@ -169,7 +163,7 @@ function applyFromUI(app){
   app.ruleSet.renchan.onTenpai = (renTen === "true");
 }
 
-// ---------------- preset buttons ----------------
+/* ---------------- preset buttons ---------------- */
 function wirePresetButtons(app, dom, done){
   const loadBtn = document.getElementById("presetLoadBtn");
   const saveBtn = document.getElementById("presetSaveBtn");
@@ -183,11 +177,9 @@ function wirePresetButtons(app, dom, done){
 
     pushSnapshot(app);
 
-    // deep clone
     app.ruleSet = JSON.parse(JSON.stringify(found));
     app.activeRuleSetId = app.ruleSet.id;
 
-    // runtime의 handsPlan은 룰셋을 따라가게
     app.runtime.roundState.handsPlanId = app.ruleSet.endCondition.handsPlanId || app.runtime.roundState.handsPlanId;
 
     done?.();
@@ -213,13 +205,13 @@ function wirePresetButtons(app, dom, done){
     applyFromUI(app);
 
     openModal(dom, "프리셋 이름", `
-      <div class="field"><label>이름</label><input id="newPresetName" value="${escapeHtml(app.ruleSet.name)}"/></div>
+      <div class="field"><label>이름</label><input id="newPresetName" value="${esc(app.ruleSet.name)}"/></div>
     `, () => {
       const name = (document.getElementById("newPresetName").value || "").trim();
       if (!name) return false;
 
       const copy = JSON.parse(JSON.stringify(app.ruleSet));
-      copy.id = cryptoSafeId();
+      copy.id = (crypto?.randomUUID?.() || ("preset-" + Math.random().toString(16).slice(2)));
       copy.name = name;
 
       app.ruleSets.unshift(copy);
@@ -248,9 +240,4 @@ function wirePresetButtons(app, dom, done){
       return true;
     });
   });
-}
-
-function cryptoSafeId(){
-  // uuid() 대신 간단히
-  return (crypto?.randomUUID?.() || ("preset-" + Math.random().toString(16).slice(2)));
 }
