@@ -1,14 +1,17 @@
+<!-- index.html v1.6.0 -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mahjong Score Pointer v1.5</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Mahjong Score Pointer v1.6.0</title>
+
+  <!-- ✅ 캐시 무효화: ?v=1.6.0 -->
+  <link rel="stylesheet" href="style.css?v=1.6.0" />
 </head>
 <body>
   <header class="topbar" id="topbar">
-    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.5</span></div>
+    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.0</span></div>
     <div class="meta">
       <button id="settingsBtn" class="btn">⚙️ 설정</button>
       <button id="settleBtn" class="btn">📊 최종정산</button>
@@ -17,7 +20,7 @@
     </div>
   </header>
 
-  <main class="table">
+  <main class="table" id="tableRoot">
     <section class="seat seat-top" data-seat="0"></section>
     <section class="seat seat-right" data-seat="1"></section>
     <section class="seat seat-bottom" data-seat="2"></section>
@@ -64,6 +67,7 @@
     </form>
   </dialog>
 
-  <script src="app.js"></script>
+  <!-- ✅ 캐시 무효화: ?v=1.6.0 -->
+  <script src="app.js?v=1.6.0"></script>
 </body>
 </html>
