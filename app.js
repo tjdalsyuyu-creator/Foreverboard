@@ -1,16 +1,14 @@
-// Mahjong Score Pointer v1.5 (custom rules - full integrated)
-// ✅ Reset 시 동(East) 시작 위치 선택 -> 선택한 사람이 동(0)이 되도록 자리 재배치
-// ✅ Multi Ron: Double/Triple ron 인정(중복지급)
-// ✅ Multi Ron 공탁: 방총자 기준 가까운 승자(동→남→서→북) 1명이 전액 수령
-// ✅ Multi Ron: 승자별 부/판 개별 입력 (체크된 승자만 표시) + 지불 미리보기(실시간)
-// ✅ Final Settlement: ((score - returnScore) + oka + uma) * 2
-// ✅ Settlement display toggle: points vs /1000
-// ✅ Tie-break(공동순위): 처음 친(initial dealer) 기준 가까운 좌석 우선
-//
-// 용어 변경:
-// - "혼바" -> "본장"
-// - "딜러" -> "친"
-// - 배지: "親" -> "친"
+// Mahjong Score Pointer v1.5 (Final Integrated)
+// - 용어: 혼바→본장, 딜러→친, 배지: 친
+// - Reset 시 동(East) 선택(선택한 사람을 동(0)으로 자리 회전)
+// - 멀티론(중복지급) + 승자별 부/판 + 공탁: 방총자 기준 가까운 승자 전액
+// - 멀티론 미리보기 표(실시간)
+// - 유국 텐파이 정산(3000) + 본장 처리
+// - 쯔모
+// - 최종정산: ((점수 - return) + 오카 + 우마) × 2, 표시 단위 토글(/1000)
+// - 공동순위 타이브레이크: 처음 친 기준 가까운 좌석 우선
+// - ✅ 모바일 가로(회전 유지) 자동 스케일(기종 불문) -> CSS 변수 --autoScale 설정
+// - ✅ NEW(요청): 리치 1국 1회 제한 + 공탁(-1000) 버튼 분리 + 국 종료 시 riichi 초기화
 
 const LS_SCHEMA = "mjp_v15_schema";
 const LS_RUNTIME = "mjp_v15_runtime";
@@ -19,9 +17,7 @@ const LS_ACTIVE_RULESET_ID = "mjp_v15_active_ruleset_id";
 const LS_HANDS_PLANS = "mjp_v15_hands_plans";
 const SCHEMA_VERSION = 1;
 
-/* ===========================
-   Defaults
-=========================== */
+// ---------- Defaults ----------
 function uuid() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0;
@@ -32,15 +28,23 @@ function uuid() {
 
 function defaultHandsPlans() {
   return [
-    { id: "han-8", name: "반장전(8국) - E1~E4, S1~S4", sequence: ["E1","E2","E3","E4","S1","S2","S3","S4"] },
-    { id: "han-24", name: "확장(24국) - E,S,W,N + E,S", sequence: [
-      "E1","E2","E3","E4",
-      "S1","S2","S3","S4",
-      "W1","W2","W3","W4",
-      "N1","N2","N3","N4",
-      "E1","E2","E3","E4",
-      "S1","S2","S3","S4",
-    ] }
+    {
+      id: "han-8",
+      name: "반장전(8국) - E1~E4, S1~S4",
+      sequence: ["E1","E2","E3","E4","S1","S2","S3","S4"]
+    },
+    {
+      id: "han-24",
+      name: "확장(24국) - E,S,W,N + E,S",
+      sequence: [
+        "E1","E2","E3","E4",
+        "S1","S2","S3","S4",
+        "W1","W2","W3","W4",
+        "N1","N2","N3","N4",
+        "E1","E2","E3","E4",
+        "S1","S2","S3","S4",
+      ]
+    }
   ];
 }
 
@@ -52,44 +56,45 @@ function ruleSetTemplate(name = "작혼룰") {
     startScore: 25000,
     returnScore: 30000,
 
-    // K units: 20 => 20000 points
     okaK: 20,
     umaK: [20, 10, -10, -20],
 
     riichiPotCarryOnDraw: true,
-    honba: { ronBonusPer: 300, tsumoBonusPerEach: 100 }, // 내부 키는 honba(표시는 본장)
+
+    honba: { ronBonusPer: 300, tsumoBonusPerEach: 100 },
 
     multiRon: { enabled: true, policy: "double" },
 
     renchan: { onWin: true, onTenpai: true },
+
     endCondition: { type: "hands", handsPlanId: "han-8" }
   };
 }
 
 function defaultRuntime(ruleSet, handsPlans) {
-  const hp = handsPlans.find(h => h.id === ruleSet.endCondition.handsPlanId) || handsPlans[0];
+  const hpId = ruleSet.endCondition.handsPlanId;
+  const hp = handsPlans.find(h => h.id === hpId) || handsPlans[0];
+
   return {
     players: [
-      { name: "동", score: ruleSet.startScore },
-      { name: "남", score: ruleSet.startScore },
-      { name: "서", score: ruleSet.startScore },
-      { name: "북", score: ruleSet.startScore },
+      { name: "동", score: ruleSet.startScore, riichi: false },
+      { name: "남", score: ruleSet.startScore, riichi: false },
+      { name: "서", score: ruleSet.startScore, riichi: false },
+      { name: "북", score: ruleSet.startScore, riichi: false },
     ],
     roundState: {
       handsPlanId: hp.id,
       handIndex: 0,
-      dealerIndex: 0, // 친(親)
+      dealerIndex: 0, // 친
       honba: 0,       // 본장
       riichiPot: 0
     },
-    meta: { initialDealerIndex: 0 }, // "처음 친" 기준
+    meta: { initialDealerIndex: 0 },
     history: []
   };
 }
 
-/* ===========================
-   Storage helpers
-=========================== */
+// ---------- Storage helpers ----------
 function readJson(key, fallback) {
   try {
     const raw = localStorage.getItem(key);
@@ -99,13 +104,18 @@ function readJson(key, fallback) {
     return fallback;
   }
 }
-function writeJson(key, value) { localStorage.setItem(key, JSON.stringify(value)); }
+
+function writeJson(key, value) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
 function ensureSchema() {
   const schema = readJson(LS_SCHEMA, null);
   if (!schema || schema.version !== SCHEMA_VERSION) {
     writeJson(LS_SCHEMA, { version: SCHEMA_VERSION, createdAt: Date.now() });
   }
 }
+
 function loadHandsPlans() {
   const plans = readJson(LS_HANDS_PLANS, null);
   if (Array.isArray(plans) && plans.length) return plans;
@@ -113,15 +123,21 @@ function loadHandsPlans() {
   writeJson(LS_HANDS_PLANS, d);
   return d;
 }
+
 function loadRuleSets() {
   const sets = readJson(LS_RULESETS, null);
   if (Array.isArray(sets) && sets.length) return sets;
+
   const base = ruleSetTemplate("작혼룰");
   writeJson(LS_RULESETS, [base]);
   writeJson(LS_ACTIVE_RULESET_ID, base.id);
   return [base];
 }
-function saveRuleSets(ruleSets) { writeJson(LS_RULESETS, ruleSets); }
+
+function saveRuleSets(ruleSets) {
+  writeJson(LS_RULESETS, ruleSets);
+}
+
 function loadActiveRuleSetId(ruleSets) {
   const id = localStorage.getItem(LS_ACTIVE_RULESET_ID);
   if (id && ruleSets.some(r => r.id === id)) return id;
@@ -129,8 +145,15 @@ function loadActiveRuleSetId(ruleSets) {
   localStorage.setItem(LS_ACTIVE_RULESET_ID, fallback);
   return fallback;
 }
-function setActiveRuleSetId(id) { localStorage.setItem(LS_ACTIVE_RULESET_ID, id); }
-function stripHistory(rt) { const { history, ...rest } = rt; return rest; }
+
+function setActiveRuleSetId(id) {
+  localStorage.setItem(LS_ACTIVE_RULESET_ID, id);
+}
+
+function stripHistory(runtime) {
+  const { history, ...rest } = runtime;
+  return rest;
+}
 
 function migrateRuntime(rt, ruleSet, handsPlans) {
   if (!rt.meta) rt.meta = { initialDealerIndex: rt.roundState?.dealerIndex ?? 0 };
@@ -143,11 +166,16 @@ function migrateRuntime(rt, ruleSet, handsPlans) {
   if (typeof rt.roundState.honba !== "number") rt.roundState.honba = 0;
   if (typeof rt.roundState.riichiPot !== "number") rt.roundState.riichiPot = 0;
 
-  if (!Array.isArray(rt.players) || rt.players.length !== 4) return defaultRuntime(ruleSet, handsPlans);
+  if (!Array.isArray(rt.players) || rt.players.length !== 4) {
+    return defaultRuntime(ruleSet, handsPlans);
+  }
+
   rt.players = rt.players.map((p, i) => ({
     name: (p && typeof p.name === "string" && p.name.trim()) ? p.name : ["동","남","서","북"][i],
-    score: (p && typeof p.score === "number") ? p.score : ruleSet.startScore
+    score: (p && typeof p.score === "number") ? p.score : ruleSet.startScore,
+    riichi: (p && typeof p.riichi === "boolean") ? p.riichi : false
   }));
+
   return rt;
 }
 
@@ -158,13 +186,15 @@ function loadRuntime(ruleSet, handsPlans) {
     writeJson(LS_RUNTIME, stripHistory(fresh));
     return fresh;
   }
-  return { ...migrateRuntime(rt, ruleSet, handsPlans), history: [] };
+  const migrated = migrateRuntime(rt, ruleSet, handsPlans);
+  return { ...migrated, history: [] };
 }
-function saveRuntime(runtime) { writeJson(LS_RUNTIME, stripHistory(runtime)); }
 
-/* ===========================
-   App state
-=========================== */
+function saveRuntime(runtime) {
+  writeJson(LS_RUNTIME, stripHistory(runtime));
+}
+
+// ---------- App state ----------
 ensureSchema();
 let handsPlans = loadHandsPlans();
 let ruleSets = loadRuleSets();
@@ -172,9 +202,7 @@ let activeRuleSetId = loadActiveRuleSetId(ruleSets);
 let ruleSet = ruleSets.find(r => r.id === activeRuleSetId) || ruleSets[0];
 let runtime = loadRuntime(ruleSet, handsPlans);
 
-/* ===========================
-   UI elements
-=========================== */
+// ---------- UI elements ----------
 const els = {
   seats: [...document.querySelectorAll(".seat")],
   dealerName: document.getElementById("dealerName"),
@@ -195,9 +223,7 @@ const els = {
   modalOk: document.getElementById("modalOk"),
 };
 
-/* ===========================
-   Utilities
-=========================== */
+// ---------- Utilities ----------
 function fmt(n) { return Number(n).toLocaleString("ko-KR"); }
 const fmtK = new Intl.NumberFormat("ko-KR", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
@@ -213,6 +239,7 @@ function clampMaybeInt(v, min, max) {
   const t = Math.trunc(x);
   return Math.max(min, Math.min(max, t));
 }
+
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, (m) => ({
     "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
@@ -220,7 +247,7 @@ function escapeHtml(s) {
 }
 
 function seatName(i) { return runtime.players[i].name; }
-function isDealer(i) { return i === runtime.roundState.dealerIndex; } // 친
+function isDealer(i) { return i === runtime.roundState.dealerIndex; }
 
 function currentHandsPlan() {
   const id = runtime.roundState.handsPlanId || ruleSet.endCondition.handsPlanId;
@@ -263,6 +290,7 @@ function undo() {
 
   saveRuntime(runtime);
   render();
+  applyAutoScaleForMobileLandscape();
 }
 
 function openModal(title, bodyHtml, onOk) {
@@ -287,9 +315,7 @@ function persistAll() {
   saveRuntime(runtime);
 }
 
-/* ===========================
-   Seat priority (동→남→서→북) + rotate for East selection
-=========================== */
+// ---------- Seat priority helpers + East selection rotation ----------
 function seatDistance(from, to) { return (to - from + 4) % 4; }
 function orderByNearestFrom(fromSeat, seats) {
   return [...seats].sort((a, b) => seatDistance(fromSeat, a) - seatDistance(fromSeat, b));
@@ -299,28 +325,37 @@ function pickNearestFrom(fromSeat, seats) {
   const filtered = ordered.filter(x => x !== fromSeat);
   return filtered[0] ?? ordered[0] ?? null;
 }
+
 function rotateArray(arr, startIndex) {
   const n = arr.length;
   const s = ((startIndex % n) + n) % n;
   return arr.slice(s).concat(arr.slice(0, s));
 }
+
 function resetWithEastSelection(eastOldIndex) {
   runtime.players = rotateArray(runtime.players, eastOldIndex);
-  for (const p of runtime.players) p.score = ruleSet.startScore;
+
+  for (const p of runtime.players) {
+    p.score = ruleSet.startScore;
+    p.riichi = false;
+  }
 
   runtime.roundState.handIndex = 0;
-  runtime.roundState.honba = 0;      // 본장
+  runtime.roundState.honba = 0;
   runtime.roundState.riichiPot = 0;
 
-  runtime.roundState.dealerIndex = 0;      // 친 = 동
-  runtime.meta.initialDealerIndex = 0;     // 처음 친 기준
+  runtime.roundState.dealerIndex = 0;
+  runtime.meta.initialDealerIndex = 0;
 
   runtime.roundState.handsPlanId = ruleSet.endCondition.handsPlanId || runtime.roundState.handsPlanId;
 }
 
-/* ===========================
-   Scoring (Riichi)
-=========================== */
+// ---------- NEW: hand end -> clear riichi flags ----------
+function clearRiichiFlags() {
+  for (const p of runtime.players) p.riichi = false;
+}
+
+// ---------- Scoring core ----------
 function ceilTo100(x) { return Math.ceil(x / 100) * 100; }
 
 function basicPoints(fu, han) {
@@ -350,19 +385,17 @@ function calcTsumoPays({ winner, fu, han }) {
     return { type: "dealerTsumo", each };
   } else {
     const dealerPay = ceilTo100(b * 2) + rs.honba * ruleSet.honba.tsumoBonusPerEach;
-    const childPay = ceilTo100(b * 1) + rs.honba * ruleSet.honba.tsumoBonusPerEach;
+    const childPay  = ceilTo100(b * 1) + rs.honba * ruleSet.honba.tsumoBonusPerEach;
     return { type: "childTsumo", dealerPay, childPay };
   }
 }
 
-function applyTransfer(from, to, amt) {
-  runtime.players[from].score -= amt;
-  runtime.players[to].score += amt;
+function applyTransfer(from, to, amount) {
+  runtime.players[from].score -= amount;
+  runtime.players[to].score += amount;
 }
 
-/* ===========================
-   Riichi pot policy
-=========================== */
+// ---------- Riichi pot policy: nearest winner to loser gets all ----------
 function awardRiichiPotNearestToLoser(loser, winners) {
   const pot = runtime.roundState.riichiPot;
   if (pot <= 0) return;
@@ -375,18 +408,23 @@ function awardRiichiPotNearestToLoser(loser, winners) {
   runtime.roundState.riichiPot = 0;
 }
 
-/* ===========================
-   Round progression
-=========================== */
-function dealerAdvance() { runtime.roundState.dealerIndex = (runtime.roundState.dealerIndex + 1) % 4; } // 친 이동
+// ---------- Round progression ----------
+function dealerAdvance() {
+  runtime.roundState.dealerIndex = (runtime.roundState.dealerIndex + 1) % 4;
+}
 function handAdvance() {
   runtime.roundState.handIndex += 1;
   const hp = currentHandsPlan();
-  if (runtime.roundState.handIndex >= hp.sequence.length) runtime.roundState.handIndex = hp.sequence.length - 1;
+  if (runtime.roundState.handIndex >= hp.sequence.length) {
+    runtime.roundState.handIndex = hp.sequence.length - 1;
+  }
 }
-function afterWin(winner) {
-  if (isDealer(winner) && ruleSet.renchan.onWin) {
-    runtime.roundState.honba += 1; // 본장 +1
+function afterWin(winnerIdx) {
+  // hand ends -> clear riichi
+  clearRiichiFlags();
+
+  if (isDealer(winnerIdx) && ruleSet.renchan.onWin) {
+    runtime.roundState.honba += 1;
   } else {
     runtime.roundState.honba = 0;
     dealerAdvance();
@@ -394,15 +432,17 @@ function afterWin(winner) {
   }
 }
 function afterDraw(tenpais) {
+  // 3000 settlement
   if (tenpais.length > 0 && tenpais.length < 4) {
     const notens = [0,1,2,3].filter(i => !tenpais.includes(i));
-    const recv = Math.floor(3000 / tenpais.length);
-    const pay = Math.floor(3000 / notens.length);
-    for (const n of notens) runtime.players[n].score -= pay;
-    for (const t of tenpais) runtime.players[t].score += recv;
+    const receiveEach = Math.floor(3000 / tenpais.length);
+    const payEach = Math.floor(3000 / notens.length);
+    for (const n of notens) runtime.players[n].score -= payEach;
+    for (const t of tenpais) runtime.players[t].score += receiveEach;
   }
 
-  runtime.roundState.honba += 1; // 유국이면 본장 +1
+  // draw -> 본장 +1
+  runtime.roundState.honba += 1;
 
   const dealer = runtime.roundState.dealerIndex;
   const dealerTenpai = tenpais.includes(dealer);
@@ -412,23 +452,27 @@ function afterDraw(tenpais) {
   }
 
   if (!ruleSet.riichiPotCarryOnDraw) runtime.roundState.riichiPot = 0;
+
+  // hand ends -> clear riichi
+  clearRiichiFlags();
 }
 
-/* ===========================
-   Render
-=========================== */
+// ---------- Render ----------
 function render() {
-  els.honbaLabel.textContent = runtime.roundState.honba; // 본장 표시
+  els.honbaLabel.textContent = runtime.roundState.honba;
   els.riichiPotLabel.textContent = runtime.roundState.riichiPot;
   els.roundLabel.textContent = currentHandLabel();
-  els.dealerName.textContent = seatName(runtime.roundState.dealerIndex); // 친 표시
+  els.dealerName.textContent = seatName(runtime.roundState.dealerIndex);
 
   els.seats.forEach((seatEl) => {
     const i = Number(seatEl.dataset.seat);
     const p = runtime.players[i];
 
-    // ✅ 배지 한글화: 親 -> 친
     const dealerBadge = isDealer(i) ? `<span class="badge">친</span>` : "";
+
+    // ✅ 리치 1회 제한: 이미 riichi면 버튼 비활성(UX) + 클릭 무시(로직)
+    const riichiDisabled = p.riichi ? "disabled" : "";
+    const riichiLabel = p.riichi ? "리치(완료)" : "리치(-1000)";
 
     seatEl.innerHTML = `
       <div class="player-head">
@@ -437,7 +481,8 @@ function render() {
       </div>
       <div class="score">${fmt(p.score)}</div>
       <div class="actions">
-        <button class="btn small" data-action="riichi" data-seat="${i}">리치(-1000)</button>
+        <button class="btn small" data-action="riichi" data-seat="${i}" ${riichiDisabled}>${riichiLabel}</button>
+        <button class="btn small" data-action="pot" data-seat="${i}">공탁(-1000)</button>
         <button class="btn small primary" data-action="ron" data-seat="${i}">론(멀티)</button>
         <button class="btn small primary" data-action="tsumo" data-seat="${i}">쯔모</button>
         <button class="btn small" data-action="edit" data-seat="${i}">이름/점수</button>
@@ -446,9 +491,35 @@ function render() {
   });
 }
 
-/* ===========================
-   Global actions
-=========================== */
+// ---------- ✅ Auto scale for mobile landscape ----------
+function applyAutoScaleForMobileLandscape() {
+  const isCoarse = matchMedia("(pointer: coarse)").matches;
+  const isLandscape = matchMedia("(orientation: landscape)").matches;
+
+  if (!isCoarse || !isLandscape) {
+    document.documentElement.style.removeProperty("--autoScale");
+    return;
+  }
+
+  const table = document.querySelector(".table");
+  if (!table) return;
+
+  const topbar = document.querySelector(".topbar");
+  const topH = topbar ? topbar.getBoundingClientRect().height : 0;
+
+  const availableH = Math.max(220, window.innerHeight - topH - 8);
+
+  document.documentElement.style.setProperty("--autoScale", "1");
+  const rect = table.getBoundingClientRect();
+  const tableH = Math.max(1, rect.height);
+
+  let s = availableH / tableH;
+  s = Math.max(0.62, Math.min(1, s));
+
+  document.documentElement.style.setProperty("--autoScale", String(s));
+}
+
+// ---------- Actions ----------
 document.body.addEventListener("click", (e) => {
   const btn = e.target.closest("button");
   if (!btn) return;
@@ -458,11 +529,27 @@ document.body.addEventListener("click", (e) => {
 
   const seat = Number(btn.dataset.seat);
 
+  // ✅ 리치: 1국 1회 제한
   if (action === "riichi") {
+    const p = runtime.players[seat];
+    if (p.riichi) return; // 이미 리치면 무시
+
+    saveSnapshot();
+    p.riichi = true;
+    p.score -= 1000;
+    runtime.roundState.riichiPot += 1000;
+
+    persistAll(); render();
+    applyAutoScaleForMobileLandscape();
+  }
+
+  // ✅ 공탁(-1000) 별도 버튼: 언제든 누르면 공탁 누적(리치와 별개)
+  if (action === "pot") {
     saveSnapshot();
     runtime.players[seat].score -= 1000;
     runtime.roundState.riichiPot += 1000;
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
   }
 
   if (action === "edit") {
@@ -476,6 +563,7 @@ document.body.addEventListener("click", (e) => {
       runtime.players[seat].name = name;
       if (!Number.isNaN(score)) runtime.players[seat].score = score;
       persistAll(); render();
+      applyAutoScaleForMobileLandscape();
     });
   }
 
@@ -491,15 +579,9 @@ els.resetBtn.addEventListener("click", () => {
   ).join("");
 
   openModal("리셋 (동 위치 선택)", `
-    <p class="small">
-      리셋 후 “동(East)”이 될 사람을 선택해줘.<br/>
-      선택한 사람은 동(0)으로 자리 재배치되고, 친도 동부터 시작해.
-    </p>
-    <div class="field">
-      <label>동(East)</label>
-      <select id="eastPick">${opts}</select>
-    </div>
-    <p class="small">※ 점수/국/본장/공탁은 초기화되고, 이름은 유지돼.</p>
+    <p class="small">리셋 후 “동(East)”이 될 사람을 선택해줘. (선택한 사람은 동(0)으로 자리 재배치)</p>
+    <div class="field"><label>동(East)</label><select id="eastPick">${opts}</select></div>
+    <p class="small">※ 점수/국/본장/공탁 초기화, 이름 유지</p>
   `, () => {
     const eastOldIndex = Number(document.getElementById("eastPick").value);
     if (Number.isNaN(eastOldIndex) || eastOldIndex < 0 || eastOldIndex > 3) return false;
@@ -507,6 +589,7 @@ els.resetBtn.addEventListener("click", () => {
     saveSnapshot();
     resetWithEastSelection(eastOldIndex);
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
   });
 });
 
@@ -514,34 +597,38 @@ els.nextDealerBtn.addEventListener("click", () => {
   saveSnapshot();
   dealerAdvance();
   persistAll(); render();
+  applyAutoScaleForMobileLandscape();
 });
 
 els.addHonbaBtn.addEventListener("click", () => {
   saveSnapshot();
   runtime.roundState.honba += 1;
   persistAll(); render();
+  applyAutoScaleForMobileLandscape();
 });
 
 els.subHonbaBtn.addEventListener("click", () => {
   saveSnapshot();
   runtime.roundState.honba = Math.max(0, runtime.roundState.honba - 1);
   persistAll(); render();
+  applyAutoScaleForMobileLandscape();
 });
 
 els.drawBtn.addEventListener("click", () => openDrawModal());
 els.settingsBtn.addEventListener("click", () => openSettingsModal());
 els.settleBtn.addEventListener("click", () => openSettlementModal());
 
-/* ===========================
-   TSUMO modal
-=========================== */
+window.addEventListener("resize", applyAutoScaleForMobileLandscape);
+window.addEventListener("orientationchange", applyAutoScaleForMobileLandscape);
+
+// ---------- Modals ----------
 function openTsumoModal(winner) {
   openModal("쯔모 (부/판)", `
     <div class="row">
       <div class="field"><label>부</label><input id="fu" type="number" value="30" min="20" step="5"/></div>
       <div class="field"><label>판</label><input id="han" type="number" value="1" min="1" max="13"/></div>
     </div>
-    <p class="small">본장: 각자 +${ruleSet.honba.tsumoBonusPerEach}/본장. 공탁: 승자 전액.</p>
+    <p class="small">본장: 각자 +${ruleSet.honba.tsumoBonusPerEach}/본장 · 공탁: 승자 전액</p>
   `, () => {
     const fu = clampInt(document.getElementById("fu").value, 20, 110);
     const han = clampInt(document.getElementById("han").value, 1, 13);
@@ -568,11 +655,12 @@ function openTsumoModal(winner) {
 
     afterWin(winner);
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
   });
 }
 
 /* ===========================
-   MULTI RON modal (enhanced UI + preview)
+   MULTI RON modal (승자별 부/판 + 미리보기)
 =========================== */
 function openMultiRonModal(seedWinner) {
   const names = runtime.players.map(p => p.name);
@@ -616,10 +704,7 @@ function openMultiRonModal(seedWinner) {
       </div>
 
       <div class="card">
-        <div class="field">
-          <label>방총자</label>
-          <select id="loser">${loserOptions}</select>
-        </div>
+        <div class="field"><label>방총자</label><select id="loser">${loserOptions}</select></div>
 
         <div class="row">
           <div class="field"><label>공통 부</label><input id="fu_common" type="number" value="30" min="20" step="5"/></div>
@@ -627,8 +712,8 @@ function openMultiRonModal(seedWinner) {
         </div>
 
         <div class="row">
-          <button class="btn" id="copyCommonBtn" type="button">공통값을 체크된 승자에게 복사</button>
-          <button class="btn" id="clearWinnerInputsBtn" type="button">승자 개별입력 비우기</button>
+          <button class="btn" id="copyCommonBtn" type="button">공통값 복사</button>
+          <button class="btn" id="clearWinnerInputsBtn" type="button">개별입력 비우기</button>
         </div>
 
         <hr/>
@@ -641,10 +726,9 @@ function openMultiRonModal(seedWinner) {
 
         <hr/>
         <div class="small">
-          - 중복지급: 방총자가 승자 수만큼 각각 지불<br/>
-          - 본장(론): 각 승자에게 +${ruleSet.honba.ronBonusPer}/본장씩 중복 적용<br/>
-          - “첫 승자”: 방총자 기준 가까운 승자(동→남→서→북)<br/>
-          - 공탁: “첫 승자”가 전액 수령
+          - 중복지급(더블/트리플)<br/>
+          - 본장(론): 각 승자에게 +${ruleSet.honba.ronBonusPer}/본장씩<br/>
+          - 공탁: 방총자 기준 가까운 승자 전액
         </div>
       </div>
     </div>
@@ -676,18 +760,23 @@ function openMultiRonModal(seedWinner) {
     awardRiichiPotNearestToLoser(loser, ordered);
 
     const dealer = runtime.roundState.dealerIndex;
-    if (ordered.includes(dealer)) runtime.roundState.honba += 1;
-    else { runtime.roundState.honba = 0; dealerAdvance(); handAdvance(); }
+    if (ordered.includes(dealer)) {
+      runtime.roundState.honba += 1;
+      clearRiichiFlags();
+    } else {
+      runtime.roundState.honba = 0;
+      dealerAdvance();
+      handAdvance();
+      clearRiichiFlags();
+    }
 
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
   });
 
   wireMultiRonEnhancedUIWithPreview();
 }
 
-/* ===========================
-   MultiRon modal wiring + preview
-=========================== */
 function wireMultiRonEnhancedUIWithPreview() {
   const getCheckedWinners = () => [0,1,2,3].filter(i => document.getElementById(`w${i}`)?.checked);
 
@@ -714,7 +803,7 @@ function wireMultiRonEnhancedUIWithPreview() {
     if (hanInput && hanInput.value === "") hanInput.value = hanCommon ?? "";
   };
 
-  const readCurrentRonPlan = () => {
+  const readPlan = () => {
     const loser = Number(document.getElementById("loser")?.value);
     const fuCommon = clampInt(document.getElementById("fu_common")?.value, 20, 110);
     const hanCommon = clampInt(document.getElementById("han_common")?.value, 1, 13);
@@ -728,18 +817,17 @@ function wireMultiRonEnhancedUIWithPreview() {
     const lines = ordered.map(w => {
       const fuW = clampMaybeInt(document.getElementById(`fu_w${w}`)?.value, 20, 110);
       const hanW = clampMaybeInt(document.getElementById(`han_w${w}`)?.value, 1, 13);
+
       const fu = (fuW == null) ? fuCommon : fuW;
       const han = (hanW == null) ? hanCommon : hanW;
 
       const basePay = calcRonPay({ winnerIsDealer: isDealer(w), fu, han });
       const totalPay = basePay + honbaBonus;
-
       return { winner: w, fu, han, basePay, honbaBonus, totalPay };
     });
 
-    const sum = lines.reduce((acc, x) => acc + x.totalPay, 0);
-
-    return { loser, winners, ordered, potReceiver, lines, sum, honbaBonus };
+    const sum = lines.reduce((a, b) => a + b.totalPay, 0);
+    return { loser, ordered, potReceiver, lines, sum, honbaBonus };
   };
 
   const renderPreview = () => {
@@ -747,10 +835,10 @@ function wireMultiRonEnhancedUIWithPreview() {
     const table = document.getElementById("previewTable");
     if (!box || !table) return;
 
-    const plan = readCurrentRonPlan();
+    const plan = readPlan();
     const pot = runtime.roundState.riichiPot;
 
-    if (plan.winners.length === 0) {
+    if (plan.lines.length === 0) {
       box.innerHTML = `승자를 체크하면 미리보기가 표시돼.`;
       table.innerHTML = "";
       return;
@@ -780,12 +868,8 @@ function wireMultiRonEnhancedUIWithPreview() {
       <table>
         <thead>
           <tr>
-            <th>승자</th>
-            <th class="right">부</th>
-            <th class="right">판</th>
-            <th class="right">론점수</th>
-            <th class="right">본장</th>
-            <th class="right">방총자 지불</th>
+            <th>승자</th><th class="right">부</th><th class="right">판</th>
+            <th class="right">론점수</th><th class="right">본장</th><th class="right">방총자 지불</th>
           </tr>
         </thead>
         <tbody>
@@ -862,9 +946,7 @@ function wireMultiRonEnhancedUIWithPreview() {
   onWinnerToggle();
 }
 
-/* ===========================
-   DRAW modal
-=========================== */
+// ---------- Modals: DRAW ----------
 function openDrawModal() {
   const checks = runtime.players.map((p, i) => `
     <div class="field">
@@ -882,13 +964,11 @@ function openDrawModal() {
     saveSnapshot();
     afterDraw(tenpais);
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
   });
 }
 
-/* ===========================
-   SETTINGS / Final Settlement
-   (이하 동일: 본장/친 문구는 index.html에서 처리)
-=========================== */
+// ---------- Modals: SETTINGS ----------
 function openSettingsModal() {
   const presetOptions = ruleSets.map(r =>
     `<option value="${r.id}" ${r.id === ruleSet.id ? "selected" : ""}>${escapeHtml(r.name)}</option>`
@@ -902,7 +982,10 @@ function openSettingsModal() {
     <div class="grid2">
       <div class="card">
         <div class="small">프리셋</div>
-        <div class="field"><label>선택</label><select id="presetSel">${presetOptions}</select></div>
+        <div class="field">
+          <label>선택</label>
+          <select id="presetSel">${presetOptions}</select>
+        </div>
         <div class="row">
           <button class="btn" id="presetLoadBtn" type="button">불러오기</button>
           <button class="btn" id="presetSaveBtn" type="button">저장(덮어쓰기)</button>
@@ -915,7 +998,10 @@ function openSettingsModal() {
 
       <div class="card">
         <div class="small">국수(Hands Plan)</div>
-        <div class="field"><label>플랜</label><select id="handsSel">${hpOptions}</select></div>
+        <div class="field">
+          <label>플랜</label>
+          <select id="handsSel">${hpOptions}</select>
+        </div>
       </div>
     </div>
 
@@ -929,7 +1015,7 @@ function openSettingsModal() {
       </div>
 
       <div class="card">
-        <div class="small">오카/우마(K 단위)</div>
+        <div class="small">오카/우마 (K 단위)</div>
         <div class="field"><label>오카(+K)</label><input id="okaK" type="number" value="${ruleSet.okaK}" /></div>
         <div class="row">
           <div class="field"><label>우마1</label><input id="u1" type="number" value="${ruleSet.umaK[0]}" /></div>
@@ -976,9 +1062,12 @@ function openSettingsModal() {
           </select>
         </div>
       </div>
-      <p class="small">공탁은 멀티론 시 “방총자 기준 가까운 승자”가 전액 수령(고정).</p>
     </div>
-  `, () => { applySettingsFromModal(); return true; });
+  `, () => {
+    applySettingsFromModal();
+    applyAutoScaleForMobileLandscape();
+    return true;
+  });
 
   wireSettingsButtons();
 }
@@ -1005,6 +1094,7 @@ function wireSettingsButtons() {
     runtime.roundState.handsPlanId = ruleSet.endCondition.handsPlanId || runtime.roundState.handsPlanId;
 
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
     els.modal.close("ok");
   };
 
@@ -1015,10 +1105,12 @@ function wireSettingsButtons() {
     const idx = ruleSets.findIndex(r => r.id === ruleSet.id);
     if (idx >= 0) ruleSets[idx] = ruleSet;
     else ruleSets.unshift(ruleSet);
+
     saveRuleSets(ruleSets);
     setActiveRuleSetId(ruleSet.id);
 
     persistAll(); render();
+    applyAutoScaleForMobileLandscape();
     els.modal.close("ok");
   };
 
@@ -1044,12 +1136,13 @@ function wireSettingsButtons() {
       activeRuleSetId = newSet.id;
 
       persistAll(); render();
+      applyAutoScaleForMobileLandscape();
     });
   };
 
   delBtn.onclick = () => {
     const id = document.getElementById("presetSel").value;
-    if (ruleSets.length <= 1) { alert("프리셋은 최소 1개는 남겨야 해."); return; }
+    if (ruleSets.length <= 1) return alert("프리셋은 최소 1개는 남겨야 해.");
 
     openModal("프리셋 삭제", `<p class="small">정말 삭제할까요?</p>`, () => {
       saveSnapshot();
@@ -1061,6 +1154,7 @@ function wireSettingsButtons() {
         setActiveRuleSetId(ruleSet.id);
       }
       persistAll(); render();
+      applyAutoScaleForMobileLandscape();
     });
   };
 }
@@ -1100,13 +1194,13 @@ function applySettingsFromModal() {
   if (carry === "true") ruleSet.riichiPotCarryOnDraw = true;
   if (carry === "false") ruleSet.riichiPotCarryOnDraw = false;
 
-  persistAll(); render();
+  persistAll();
+  render();
 }
 
+// ---------- Modal: Final Settlement ----------
 function openSettlementModal() {
   const initDealer = runtime.meta?.initialDealerIndex ?? 0;
-  const okaPts = (ruleSet.okaK || 0) * 1000;
-  const umaPtsByRank = (ruleSet.umaK || [0,0,0,0]).map(k => (k || 0) * 1000);
 
   const ranked = [0,1,2,3]
     .map(i => ({ i, name: runtime.players[i].name, score: runtime.players[i].score }))
@@ -1115,15 +1209,18 @@ function openSettlementModal() {
       return seatDistance(initDealer, a.i) - seatDistance(initDealer, b.i);
     });
 
-  function renderTable(unit) {
-    const display = (v) => unit === "k" ? fmtK.format(v / 1000) : fmt(v);
+  const okaPts = (ruleSet.okaK || 0) * 1000;
+  const umaPtsByRank = (ruleSet.umaK || [0,0,0,0]).map(k => (k || 0) * 1000);
 
+  function renderSettlementTable(unit) {
     const rows = ranked.map((r, idx) => {
       const umaPts = umaPtsByRank[idx] ?? 0;
       const base = r.score - ruleSet.returnScore;
       const final = (base + okaPts + umaPts) * 2;
       return { rank: idx + 1, name: r.name, score: r.score, base, okaPts, umaPts, final };
     });
+
+    const display = (v) => unit === "k" ? fmtK.format(v / 1000) : fmt(v);
 
     const table = `
       <table>
@@ -1152,8 +1249,7 @@ function openSettlementModal() {
         </tbody>
       </table>
     `;
-    const target = document.getElementById("settleTable");
-    if (target) target.innerHTML = table;
+    document.getElementById("settleTable").innerHTML = table;
   }
 
   openModal("📊 최종정산 (표시 단위 토글)", `
@@ -1162,35 +1258,23 @@ function openSettlementModal() {
         <div class="field">
           <label>표시 단위</label>
           <select id="displayUnit">
-            <option value="points" selected>점수(예: 102000)</option>
-            <option value="k">천점표기(예: 102.0)</option>
+            <option value="points" selected>점수</option>
+            <option value="k">천점표기</option>
           </select>
         </div>
-        <div class="field">
-          <label>타이브레이크</label>
-          <input disabled value="처음 친(${escapeHtml(seatName(initDealer))}) 기준 가까운 좌석 우선" />
-        </div>
       </div>
-      <div class="small">
-        공식: { (개인점수 - returnScore) + 오카 + 우마 } × 2<br/>
-        returnScore=${fmt(ruleSet.returnScore)},
-        오카=+${ruleSet.okaK}K(${fmt(okaPts)}점),
-        우마=[${ruleSet.umaK.join(", ")}]K
-      </div>
-      <hr/>
       <div id="settleTable"></div>
-      <p class="small">“천점표기”는 표시만 바뀌고 계산은 원점수(1점 단위)로 유지됨.</p>
     </div>
   `, () => true);
 
   const sel = document.getElementById("displayUnit");
-  const apply = () => renderTable(sel?.value === "k" ? "k" : "points");
-  if (sel) sel.addEventListener("change", apply);
+  const apply = () => renderSettlementTable(sel?.value === "k" ? "k" : "points");
+  sel.addEventListener("change", apply);
   apply();
+  applyAutoScaleForMobileLandscape();
 }
 
-/* ===========================
-   init
-=========================== */
+// ---------- init ----------
 render();
 persistAll();
+applyAutoScaleForMobileLandscape();
