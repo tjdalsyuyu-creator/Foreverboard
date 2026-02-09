@@ -1,5 +1,4 @@
-// js/main.js v1.6.5 (debug-wired)
-import { initGlobalErrorHook, dbg } from "./debug.js";
+// js/main.js v1.6.5
 import { loadApp, saveApp } from "./storage.js";
 import { getDom } from "./dom.js";
 import { render } from "./render.js";
@@ -8,36 +7,21 @@ import { initTopbar } from "./topbar.js";
 import { initFullscreen } from "./fullscreen.js";
 import { initAutoScale } from "./autoscale.js";
 
-initGlobalErrorHook();
-dbg("✅ main.js loaded");
+console.log("main.js v1.6.5 loaded");
 
 const app = loadApp();
-dbg("✅ loadApp OK");
-
 const dom = getDom();
-dbg(`✅ DOM OK (fullscreenBtn=${!!dom.fullscreenBtn}, topbar=${!!dom.topbar})`);
 
 const rerender = () => {
   saveApp(app);
   render(app, dom);
 };
 
+// 초기 렌더
 render(app, dom);
-dbg("✅ first render OK");
 
+// 기능 초기화
 bindActions(app, dom, rerender);
-dbg("✅ actions bound");
-
 initTopbar(dom, rerender);
-dbg("✅ topbar init");
-
+initFullscreen(dom, rerender);
 initAutoScale(dom, rerender);
-dbg("✅ autoscale init");
-
-/* ✅ fullscreen 초기화에서 '버튼 클릭 이벤트가 붙었는지'를 디버그로 확인 */
-try{
-  initFullscreen(dom, rerender);
-  dbg("✅ fullscreen init called");
-}catch(e){
-  dbg(`❌ fullscreen init crashed: ${e.message || e}`);
-}
