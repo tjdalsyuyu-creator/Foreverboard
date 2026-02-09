@@ -1,13 +1,10 @@
-// js/scoring.js v1.6.5+ (A옵션 연결 + 유국만관)
+// js/scoring.js v1.6.5+ (add chombo)
 import { SEATS } from "./constants.js";
 
 export function ceil100(x){ return Math.ceil(x/100)*100; }
+function opt(app){ return app.ruleSet.options || {}; }
 
-function opt(app){
-  return app.ruleSet.options || {};
-}
-
-/* 절상만관 포함 기본점 */
+/* --- 기존 기능들(절상만관/2판묶기/파오/토비/유국만관) 그대로 --- */
 export function basicPoints(app, fu, han){
   const o = opt(app);
 
@@ -17,7 +14,6 @@ export function basicPoints(app, fu, han){
   if(han >= 6)  return 3000;
   if(han >= 5)  return 2000;
 
-  // ✅ 절상만관
   if(o.kiriageMangan){
     if((han === 3 && fu >= 60) || (han === 4 && fu >= 30)){
       return 2000;
@@ -48,7 +44,6 @@ export function tsumoPays(app, winnerSeat, fu, han){
   }
 }
 
-/* ✅ 2판 묶기 */
 export function validateTwoHanShibari(app, han){
   const o = opt(app);
   if(!o.twoHanShibari) return { ok:true };
@@ -57,7 +52,6 @@ export function validateTwoHanShibari(app, han){
   return { ok:false, message:"2판 묶기: 5본장부터는 2판 이상만 화료 가능합니다." };
 }
 
-/* ✅ 파오: tsumo 100% / ron 50:50 */
 export function applyPaoIfNeeded({ app, totalPay, loserSeat, paoSeat, isTsumo }){
   const o = opt(app);
   if(!o.paoEnabled) return null;
@@ -66,8 +60,6 @@ export function applyPaoIfNeeded({ app, totalPay, loserSeat, paoSeat, isTsumo })
   if(isTsumo){
     return [{ from: paoSeat, toPay: totalPay }];
   }
-
-  // ron: 방총자 50, 책임자 50
   if(paoSeat === loserSeat){
     return [{ from: loserSeat, toPay: totalPay }];
   }
@@ -84,7 +76,6 @@ export function transfer(app, from, to, amt){
   app.runtime.players[to].score += amt;
 }
 
-/* ✅ 토비 */
 export function checkTobiAndEnd(app){
   const o = opt(app);
   if(!o.tobiEnabled) return false;
@@ -96,10 +87,7 @@ export function checkTobiAndEnd(app){
   return false;
 }
 
-/* ✅ 유국만관(낙시만관) 적용: 선택한 승자를 "만관 쯔모"처럼 처리 */
 export function applyNagashiMangan(app, winnerSeat){
-  // 만관 base=2000로 tsumo와 동일 분배
-  // (부/판 입력 없이 만관 확정)
   const rs = app.runtime.roundState;
   const dealer = rs.dealerIndex;
   const b = 2000;
@@ -113,11 +101,34 @@ export function applyNagashiMangan(app, winnerSeat){
   } else {
     const dealerPay = ceil100(b * 2) + rs.honba * app.ruleSet.honba.tsumoBonusPerEach;
     const childPay  = ceil100(b * 1) + rs.honba * app.ruleSet.honba.tsumoBonusPerEach;
-
     for(const i of SEATS){
       if(i === winnerSeat) continue;
       const amt = (i === dealer) ? dealerPay : childPay;
       transfer(app, i, winnerSeat, amt);
     }
   }
+}
+
+/* =========================
+   ✅ Chombo (촌보)
+   - offender pays 3000 to each other (total 9000)
+   - round re-run: hand/honba/pot 유지
+========================= */
+export function applyChombo(app, offenderSeat){
+  const PAY = 3000;
+  for(const i of SEATS){
+    if(i === offenderSeat) continue;
+    transfer(app, offenderSeat, i, PAY);
+  }
+
+  // 국/본장/공탁 유지, 다만 "재실행"이므로 리치 상태는 초기화
+  for(const p of app.runtime.players){
+    p.riichi = false;
+  }
+
+  // 자동촌보 누적은 리셋
+  app.runtime.players[offenderSeat].potCount = 0;
+
+  // 토비 체크
+  checkTobiAndEnd(app);
 }
