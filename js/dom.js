@@ -1,4 +1,4 @@
-// js/dom.js v1.6.5+ (add chomboBtn)
+// js/dom.js v1.6.5+ (add updatesBtn)
 export function getDom(){
   return {
     topbar: document.getElementById("topbar"),
@@ -19,6 +19,10 @@ export function getDom(){
     subHonbaBtn: document.getElementById("subHonbaBtn"),
 
     settingsBtn: document.getElementById("settingsBtn"),
+
+    // ✅ 추가
+    updatesBtn: document.getElementById("updatesBtn"),
+
     settleBtn: document.getElementById("settleBtn"),
     undoBtn: document.getElementById("undoBtn"),
     resetBtn: document.getElementById("resetBtn"),
