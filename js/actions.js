@@ -1,4 +1,4 @@
-// js/actions.js v1.6.5+ (Chombo button + auto chombo)
+// js/actions.js v1.6.5+ (Chombo refund-ready)
 import { pushSnapshot, popSnapshot, resetWithEastSelection, dealerAdvance } from "./state.js";
 import { render } from "./render.js";
 import { saveApp } from "./storage.js";
@@ -15,21 +15,19 @@ import { applyChombo } from "./scoring.js";
 export function bindActions(app, dom){
   const doRerender = ()=>{ saveApp(app); render(app, dom); };
 
-  // ---- Chombo button ----
+  // Chombo button
   if(dom.chomboBtn){
     dom.chomboBtn.addEventListener("click", ()=>{
       openChomboModal(app, dom, doRerender);
     });
   }
 
-  // seat buttons delegation
   document.body.addEventListener("click",(e)=>{
     const btn = e.target.closest("button");
     if(!btn) return;
     const action = btn.dataset.action;
     if(!action) return;
 
-    // game ended: allow only settings/settle/reset/chombo/undo (seat actions disabled by render)
     if(app.runtime.meta?.gameEnded) return;
 
     const seat = Number(btn.dataset.seat);
@@ -38,25 +36,33 @@ export function bindActions(app, dom){
       const p = app.runtime.players[seat];
       if(p.riichi) return;
       pushSnapshot(app);
+
       p.riichi = true;
       p.score -= 1000;
       app.runtime.roundState.riichiPot += 1000;
+
+      // ✅ 이번 국 공탁 납부 카운트 +1 (촌보 환불용)
+      p.depositCountHand = (p.depositCountHand || 0) + 1;
+
       doRerender();
       return;
     }
 
     if(action === "pot"){
       pushSnapshot(app);
+
       const p = app.runtime.players[seat];
       p.score -= 1000;
       app.runtime.roundState.riichiPot += 1000;
 
-      // ✅ 자동 촌보: 공탁(-1000) 3회 누적
+      // ✅ 이번 국 공탁 납부 카운트 +1 (촌보 환불용)
+      p.depositCountHand = (p.depositCountHand || 0) + 1;
+
+      // ✅ 자동 촌보: 공탁(-1000) 3회(국 단위)
       p.potCount = (p.potCount || 0) + 1;
       if(p.potCount >= 3){
-        // 자동촌보 실행: 국/본장/공탁 유지, 점수만 조정, 국 재실행
         applyChombo(app, seat);
-        alert(`${p.name} 공탁 3회 누적으로 자동 촌보 처리되었습니다.`);
+        alert(`${p.name} 공탁 3회 누적으로 자동 촌보 처리되었습니다. (공탁 환불 포함)`);
       }
 
       doRerender();
@@ -79,7 +85,6 @@ export function bindActions(app, dom){
     }
   });
 
-  // center buttons
   dom.undoBtn.addEventListener("click", ()=>{
     const ok = popSnapshot(app);
     if(!ok) return;
@@ -138,12 +143,14 @@ function openResetEastModal(app, dom, onDone){
   });
 }
 
-/* ✅ 촌보 모달 */
 function openChomboModal(app, dom, onDone){
   const opts = app.runtime.players.map((p,i)=>`<option value="${i}">${p.name}</option>`).join("");
   openModal(dom, "촌보", `
-    <p class="small">촌보 대상자를 선택하면, 나머지 3명에게 각 3000점 지급 후 “국 재실행”됩니다.<br/>
-    (국/본장/공탁 유지)</p>
+    <p class="small">
+      촌보 대상자가 나머지 3명에게 각 3000점 지급 후 “국 재실행”됩니다.<br/>
+      ✅ 이번 국에 대상자가 낸 공탁(리치/공탁)은 자동 환불됩니다.<br/>
+      (국/본장/공탁 유지)
+    </p>
     <div class="field">
       <label>대상자</label>
       <select id="chomboSeat">${opts}</select>
