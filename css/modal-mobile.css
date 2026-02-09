@@ -1,28 +1,70 @@
-/* modal-mobile.css */
+/* css/modal-mobile.css v1.6.5 */
+
+/* Mobile Portrait Modal UX Fix */
 @media (max-width: 520px) and (orientation: portrait) {
 
+  .modal{
+    min-width: 92vw !important;
+    max-width: 92vw !important;
+    max-height: 86vh !important;
+    padding: 12px !important;
+  }
+
+  /* grid2 -> 1열 */
   .grid2{
     grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
+  /* row -> 세로 스택 */
   .row{
     flex-direction: column !important;
+    gap: 12px !important;
   }
 
+  /* field 레이블/인풋을 세로로 */
   .field{
     flex-direction: column !important;
-    gap: 6px;
+    align-items: stretch !important;
+    gap: 6px !important;
+  }
+
+  .field label{
+    min-width: 0 !important;
+    font-size: 13px;
+    opacity: 0.9;
   }
 
   .field input,
   .field select{
-    padding:14px 12px;
-    font-size:16px;
+    padding: 14px 12px !important;
+    font-size: 16px !important;
+    border-radius: 14px !important;
   }
 
+  /* 확인/취소 버튼 2열 */
   .modal-actions{
-    display:grid;
-    grid-template-columns: 1fr 1fr;
-    gap:10px;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  .modal-actions .btn{
+    width: 100% !important;
+    padding: 14px 12px !important;
+    font-size: 16px !important;
+    border-radius: 14px !important;
+  }
+
+  /* 프리셋 버튼은 2×2 유지 */
+  .preset-grid{
+    grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
+  }
+
+  /* 아코디언 헤더 터치 강화 */
+  .acc-summary{
+    padding: 14px 12px !important;
+    font-size: 16px;
   }
 }
