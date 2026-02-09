@@ -1,11 +1,20 @@
-/* css/autoscale.css v1.6.5 */
+/* css/autoscale.css v1.6.5 FIX
+   - 전체화면/가로에서 잘림 방지: width 확장 금지
+   - transform(translate+scale)만 사용
+*/
 
 /* Auto scale (landscape + coarse + short height) */
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table{
     --s: var(--autoScale, 1);
+
+    /* ✅ 핵심: width: calc(100% / var(--s)) 제거 */
+    width: 100%;
+
     transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
     transform-origin: top left;
-    width: calc(100% / var(--s));
+
+    /* 잘림 방지 */
+    overflow: visible;
   }
 }
