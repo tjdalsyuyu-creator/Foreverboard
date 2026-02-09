@@ -1,11 +1,15 @@
-/* css/full-screen.css v1.6.5 FIX
-   - fullscreen/force-landscape에서 width 확장 금지
-   - 오버레이/터치 확대 유지
+/* css/full-screen.css v1.6.5 FIX2
+   - fullscreen/force-landscape에서 overflow-x 숨김을 풀어서 "잘림" 해결
+   - width 보정은 autoscale.css / force-landscape에서 유지
 */
 
 /* Fullscreen table height */
 :fullscreen .table { height: 100vh; }
 :-webkit-full-screen .table { height: 100vh; }
+
+/* ✅ 전체화면에서는 가로 잘림 방지를 위해 overflow-x를 풀어준다 */
+:fullscreen body { overflow-x: auto; }
+:-webkit-full-screen body { overflow-x: auto; }
 
 /* Rotate hint overlay */
 #rotateHintOverlay{
@@ -41,17 +45,17 @@
 /* Force landscape UI */
 body.fs-force-landscape #rotateHintOverlay{ display:flex; }
 
+/* ✅ 강제가로UI에서도 잘림 방지(스크롤 허용) */
+body.fs-force-landscape { overflow-x: auto; }
+
 body.fs-force-landscape .table{
   --s: var(--autoScale, 1);
 
-  /* ✅ 핵심: width: calc(100% / var(--s)) 제거 */
-  width: 100%;
+  /* ✅ 겹침 방지: width 보정 유지 */
+  width: calc(100% / var(--s));
 
   transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
   transform-origin: top left;
-
-  /* 잘림 방지 */
-  overflow: visible;
 }
 
 /* Bigger touch in force-landscape */
