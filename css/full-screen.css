@@ -1,4 +1,7 @@
-/* css/full-screen.css v1.6.5 */
+/* css/full-screen.css v1.6.5 FIX
+   - fullscreen/force-landscape에서 width 확장 금지
+   - 오버레이/터치 확대 유지
+*/
 
 /* Fullscreen table height */
 :fullscreen .table { height: 100vh; }
@@ -40,9 +43,15 @@ body.fs-force-landscape #rotateHintOverlay{ display:flex; }
 
 body.fs-force-landscape .table{
   --s: var(--autoScale, 1);
+
+  /* ✅ 핵심: width: calc(100% / var(--s)) 제거 */
+  width: 100%;
+
   transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
   transform-origin: top left;
-  width: calc(100% / var(--s));
+
+  /* 잘림 방지 */
+  overflow: visible;
 }
 
 /* Bigger touch in force-landscape */
