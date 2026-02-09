@@ -1,4 +1,4 @@
-/* style.css v1.6.1 */
+/* style.css v1.6.4 */
 * { box-sizing: border-box; }
 :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
 body { margin: 0; background: #0b1220; color: #eaf0ff; overflow-x: hidden; }
@@ -25,8 +25,8 @@ body.topbar-hidden .table{ height: 100vh; }
 .btn.danger{ background:#3b1120; border-color:#66334a; }
 .btn.small{ padding:6px 8px; border-radius:8px; font-size:12px; }
 .btn:disabled{ opacity:0.55; cursor:not-allowed; filter:none; }
-.btn.riichi-done{ background:#2b2f44; border-color:#4a557a; opacity:0.9; }
 
+.btn.riichi-done{ background:#2b2f44; border-color:#4a557a; opacity:0.9; }
 .badge{ padding:2px 8px; border-radius:999px; border:1px solid #2a3a66; font-size:12px; }
 .badge.riichi{ border-color:#7a59ff; }
 
@@ -39,6 +39,10 @@ body.topbar-hidden .table{ height: 100vh; }
   gap: 10px;
   padding: 10px;
 }
+
+/* 전체화면일 때는 테이블이 100vh */
+:fullscreen .table { height: 100vh; }
+:-webkit-full-screen .table { height: 100vh; }
 
 .seat{
   border:1px solid #213055;
@@ -118,7 +122,49 @@ td, th{ border-bottom:1px solid #213055; padding:8px; text-align:left; }
 th{ opacity:0.9; }
 .right{ text-align:right; }
 
-/* 모바일 세로: 회전 제거 + 스택 */
+/* ✅ 오버레이 */
+#rotateHintOverlay{
+  position: fixed;
+  inset: 0;
+  display: none;
+  z-index: 9999;
+  background: rgba(0,0,0,0.65);
+  color: #eaf0ff;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+#rotateHintOverlay .box{
+  max-width: 420px;
+  border: 1px solid #213055;
+  border-radius: 16px;
+  background: #0f1730;
+  padding: 16px;
+}
+#rotateHintOverlay .title{
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 8px;
+}
+#rotateHintOverlay .desc{
+  opacity: 0.9;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* ✅ 세로 전체화면(강제 가로 UI 모드) */
+body.fs-force-landscape #rotateHintOverlay{
+  display: flex;
+}
+body.fs-force-landscape .table{
+  --s: var(--autoScale, 1);
+  transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
+  transform-origin: top left;
+  width: calc(100% / var(--s));
+}
+
+/* 모바일 세로: 기본은 스택(안정성) */
 @media (max-width: 820px) and (orientation: portrait){
   .table{
     height:auto;
@@ -143,15 +189,25 @@ th{ opacity:0.9; }
   .score{ font-size:26px; }
 }
 
-/* ✅ 가로+터치+낮은높이: JS가 계산한 바운딩박스 기준으로 scale+translate */
+/* ✅ 가로+터치+낮은높이: translate/scale */
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table{
     --s: var(--autoScale, 1);
-    /* translate는 scale 뒤에 적용되도록: translate() scale() (CSS는 왼쪽이 마지막 적용) */
     transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
     transform-origin: top left;
     width: calc(100% / var(--s));
   }
+}
+
+/* ✅ 강제 가로 UI 모드에서는 터치를 더 크게 */
+body.fs-force-landscape .btn{
+  font-size: 18px;
+  padding: 16px 20px;
+  border-radius: 16px;
+}
+body.fs-force-landscape .btn.small{
+  font-size: 16px;
+  padding: 14px 18px;
 }
 
 /* 터치 확대 */
