@@ -104,4 +104,116 @@ export function openMultiRonModal(app, dom, seedWinner, onDone){
       const v2 = validateTwoHanShibari(app, han);
       if(!v2.ok){ alert(v2.message); return false; }
 
-      const base = ronPay(app, w===app.runtime.roundState.dealerIndex, fu,
+      const base = ronPay(app, w===app.runtime.roundState.dealerIndex, fu, han);
+      const totalPay = base + honbaBonus;
+
+      // 파오(론: 방총자 50 + 책임자 50)
+      const paoPlan = applyPaoIfNeeded({ app, totalPay, loserSeat:loser, paoSeat, isTsumo:false });
+      if(paoPlan){
+        for(const part of paoPlan){
+          transfer(app, part.from, w, part.toPay);
+        }
+      } else {
+        transfer(app, loser, w, totalPay);
+      }
+    }
+
+    // 공탁: 방총자 기준 가까운 승자 전액
+    if(app.runtime.roundState.riichiPot>0){
+      const recv = pickNearestFrom(loser, ordered);
+      if(recv != null){
+        app.runtime.players[recv].score += app.runtime.roundState.riichiPot;
+        app.runtime.roundState.riichiPot = 0;
+      }
+    }
+
+    // 진행
+    const dealer = app.runtime.roundState.dealerIndex;
+    if(ordered.includes(dealer)) app.runtime.roundState.honba += 1;
+    else { app.runtime.roundState.honba=0; dealerAdvance(app); handAdvance(app); }
+
+    clearRiichiFlags(app);
+
+    // 토비 체크
+    checkTobiAndEnd(app);
+
+    onDone?.();
+  });
+
+  wirePreview(app);
+}
+
+function wirePreview(app){
+  const getChecked=()=>[0,1,2,3].filter(i=>document.getElementById(`w${i}`)?.checked);
+
+  const updatePanels=()=>{
+    for(let i=0;i<4;i++){
+      const checked=!!document.getElementById(`w${i}`)?.checked;
+      const panel=document.getElementById(`panel_w${i}`);
+      if(panel) panel.style.display = checked ? "block":"none";
+    }
+  };
+
+  const renderPreview=()=>{
+    const box=document.getElementById("previewBox");
+    const table=document.getElementById("previewTable");
+    if(!box || !table) return;
+
+    const loser=Number(document.getElementById("loser")?.value);
+    const fuCommon=Number(document.getElementById("fu_common")?.value);
+    const hanCommon=Number(document.getElementById("han_common")?.value);
+    const winners=getChecked();
+    const ordered=(Number.isNaN(loser)||winners.length===0)?[]:orderByNearestFrom(loser,winners);
+
+    if(ordered.length===0){
+      box.innerHTML="승자를 체크하면 미리보기가 표시돼.";
+      table.innerHTML="";
+      return;
+    }
+
+    const honbaBonus=app.runtime.roundState.honba * app.ruleSet.honba.ronBonusPer;
+
+    const lines=ordered.map(w=>{
+      const base=ronPay(app, w===app.runtime.roundState.dealerIndex, fuCommon, hanCommon);
+      const total=base+honbaBonus;
+      return {winner:w, fu:fuCommon, han:hanCommon, base, honbaBonus, total};
+    });
+
+    const sum=lines.reduce((a,b)=>a+b.total,0);
+    const pot=app.runtime.roundState.riichiPot;
+    const potReceiver = (pot>0) ? pickNearestFrom(loser, ordered) : null;
+
+    box.innerHTML=`방총자: <b>${app.runtime.players[loser].name}</b> · 본장: <b>${app.runtime.roundState.honba}</b><br/>공탁: <b>${pot}</b> → <b>${potReceiver==null?"-":app.runtime.players[potReceiver].name}</b> 전액`;
+
+    const rows=lines.map(l=>`
+      <tr>
+        <td>${app.runtime.players[l.winner].name}</td>
+        <td class="right">${l.fu}</td>
+        <td class="right">${l.han}</td>
+        <td class="right">${l.base.toLocaleString("ko-KR")}</td>
+        <td class="right">${l.honbaBonus.toLocaleString("ko-KR")}</td>
+        <td class="right"><b>${l.total.toLocaleString("ko-KR")}</b></td>
+      </tr>
+    `).join("");
+
+    table.innerHTML=`
+      <table>
+        <thead><tr><th>승자</th><th class="right">부</th><th class="right">판</th><th class="right">론</th><th class="right">본장</th><th class="right">지불</th></tr></thead>
+        <tbody>${rows}<tr><td colspan="5" class="right"><b>총 지불</b></td><td class="right"><b>${sum.toLocaleString("ko-KR")}</b></td></tr></tbody>
+      </table>
+    `;
+  };
+
+  const onToggle=()=>{ updatePanels(); renderPreview(); };
+
+  for(let i=0;i<4;i++){
+    const cb=document.getElementById(`w${i}`);
+    if(cb) cb.addEventListener("change", onToggle);
+  }
+  document.getElementById("loser")?.addEventListener("change", renderPreview);
+  document.getElementById("fu_common")?.addEventListener("input", renderPreview);
+  document.getElementById("han_common")?.addEventListener("input", renderPreview);
+
+  updatePanels();
+  renderPreview();
+}
