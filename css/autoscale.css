@@ -1,6 +1,11 @@
-/* autoscale.css */
-@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px){
+/* css/autoscale.css v1.6.5 */
+
+/* Auto scale (landscape + coarse + short height) */
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table{
-    width: calc(100% / var(--autoScale,1));
+    --s: var(--autoScale, 1);
+    transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
+    transform-origin: top left;
+    width: calc(100% / var(--s));
   }
 }
