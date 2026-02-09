@@ -1,0 +1,28 @@
+/* modal-mobile.css */
+@media (max-width: 520px) and (orientation: portrait) {
+
+  .grid2{
+    grid-template-columns: 1fr !important;
+  }
+
+  .row{
+    flex-direction: column !important;
+  }
+
+  .field{
+    flex-direction: column !important;
+    gap: 6px;
+  }
+
+  .field input,
+  .field select{
+    padding:14px 12px;
+    font-size:16px;
+  }
+
+  .modal-actions{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap:10px;
+  }
+}
