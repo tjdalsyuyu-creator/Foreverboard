@@ -1,83 +1,54 @@
-<!-- index.html v1.6.5 (ES Modules) -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mahjong Score Pointer v1.6.5</title>
-  <link rel="stylesheet" href="css/style.css?v=1.6.5" />
+  <title>Foreverboard Loader Check</title>
+  <style>
+    body{margin:0;padding:16px;font-family:system-ui;background:#0b1220;color:#eaf0ff;}
+    .box{border:1px solid rgba(255,255,255,.15);border-radius:12px;padding:12px;background:rgba(255,255,255,.04);}
+    .ok{color:#7CFC98}
+    .bad{color:#FF7C7C}
+    code{white-space:pre-wrap;word-break:break-word}
+  </style>
 </head>
-<div id="debugPanel"></div>
 <body>
-  <header class="topbar" id="topbar">
-    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.5</span></div>
-    <div class="meta">
-      <button id="settingsBtn" class="btn">⚙️ 설정</button>
-      <button id="settleBtn" class="btn">📊 최종정산</button>
-      <button id="undoBtn" class="btn">Undo</button>
-      <button id="resetBtn" class="btn danger">Reset</button>
-    </div>
-  </header>
+  <h2>Loader Check</h2>
+  <div class="box" id="log">Starting…</div>
 
-  <main class="table" id="tableRoot">
-    <section class="seat seat-top" data-seat="0"></section>
-    <section class="seat seat-right" data-seat="1"></section>
-    <section class="seat seat-bottom" data-seat="2"></section>
-    <section class="seat seat-left" data-seat="3"></section>
+  <script type="module">
+    const logEl = document.getElementById('log');
+    const log = (msg, cls='')=>{
+      logEl.innerHTML = `<div class="${cls}">${msg}</div>` + logEl.innerHTML;
+    };
 
-    <section class="center">
-      <div class="statusbar">
-        <span>국: <b id="roundLabel">E1</b></span>
-        <span>본장: <b id="honbaLabel">0</b></span>
-        <span>공탁: <b id="riichiPotLabel">0</b></span>
+    // 전역 에러 표시
+    window.addEventListener('error', (e)=>log(`❌ error: ${e.message}`, 'bad'));
+    window.addEventListener('unhandledrejection', (e)=>log(`❌ promise: ${e.reason?.message || e.reason}`, 'bad'));
 
-        <button id="fullscreenBtn" class="btn small">⛶ 전체화면</button>
-        <button id="toggleTopbarBtn" class="btn small">상단바 숨김</button>
-      </div>
-        <button id="chomboBtn" class="btn small danger">촌보</button>
+    log('✅ index.html module OK', 'ok');
 
-      <div class="dealer">
-        친: <b id="dealerName"></b>
-        <button id="nextDealerBtn" class="btn small">친 이동</button>
-      </div>
+    // 1) CSS 엔트리 로드 테스트 (있으면)
+    const cssHref = 'css/style.css?v=' + Date.now();
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = cssHref;
+    link.onload = ()=>log(`✅ CSS loaded: ${cssHref}`, 'ok');
+    link.onerror = ()=>log(`❌ CSS failed: ${cssHref} (경로/파일명 확인)`, 'bad');
+    document.head.appendChild(link);
 
-      <div class="center-actions">
-        <button id="drawBtn" class="btn">유국(テンパ이 정산)</button>
-        <button id="addHonbaBtn" class="btn">본장 +1</button>
-        <button id="subHonbaBtn" class="btn">본장 -1</button>
-      </div>
-
-      <div class="hint">
-        ✔ 멀티론: 중복지급(더블/트리플)<br/>
-        ✔ 공탁: 방총자 기준 “가까운 승자”(동→남→서→북) 1명이 전액 수령<br/>
-        ✔ 최종정산: {(점수 - 리턴) + 오카 + 우마} × 2
-      </div>
-    </section>
-  </main>
-
-  <!-- 세로 전체화면 안내 오버레이 -->
-  <div id="rotateHintOverlay">
-    <div class="box">
-      <div class="title">가로로 돌려주세요</div>
-      <div class="desc">
-        전체화면에서는 가로가 가장 보기 좋아요.<br/>
-        기기를 가로로 돌리면 자동으로 최적화됩니다.
-      </div>
-    </div>
-  </div>
-
-  <dialog id="modal">
-    <form method="dialog" class="modal">
-      <h3 id="modalTitle">Action</h3>
-      <div id="modalBody"></div>
-      <menu class="modal-actions">
-        <button value="cancel" class="btn">취소</button>
-        <button id="modalOk" value="ok" class="btn primary">확인</button>
-      </menu>
-    </form>
-  </dialog>
-
-  <!-- ✅ ES Module entry -->
-  <script type="module" src="js/main.js?v=1.6.5"></script>
+    // 2) main.js 모듈 로드 테스트
+    const mainPath = './js/main.js?v=' + Date.now();
+    try{
+      const mod = await import(mainPath);
+      log(`✅ main.js imported: ${mainPath}`, 'ok');
+      log(`OK. (이 화면이 계속 보이면 main.js가 화면을 그리지 않는 상태)`, 'ok');
+      // main.js가 export가 없어도 import 성공이면 OK
+    }catch(err){
+      log(`❌ main.js import failed: ${mainPath}`, 'bad');
+      log(`<code>${(err && (err.stack || err.message)) || err}</code>`, 'bad');
+      log(`📌 원인 99%: (1) js 폴더/파일명 불일치 (2) main.js 위치 다름 (3) GitHub에 커밋 안 됨`, 'bad');
+    }
+  </script>
 </body>
 </html>
