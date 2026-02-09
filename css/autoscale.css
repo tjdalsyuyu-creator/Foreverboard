@@ -1,20 +1,16 @@
-/* css/autoscale.css v1.6.5 FIX
-   - 전체화면/가로에서 잘림 방지: width 확장 금지
-   - transform(translate+scale)만 사용
+/* css/autoscale.css v1.6.5 FIX2
+   - width 보정(겹침 방지) + 잘림은 fullscreen.css에서 overflow 해제로 처리
 */
 
-/* Auto scale (landscape + coarse + short height) */
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table{
     --s: var(--autoScale, 1);
 
-    /* ✅ 핵심: width: calc(100% / var(--s)) 제거 */
-    width: 100%;
+    /* ✅ 겹침 방지: 스케일만 쓰면 레이아웃 박스가 작아져 겹치는 경우가 생김
+       그래서 width 보정을 다시 살린다 */
+    width: calc(100% / var(--s));
 
     transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
     transform-origin: top left;
-
-    /* 잘림 방지 */
-    overflow: visible;
   }
 }
