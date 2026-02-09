@@ -1,67 +1,56 @@
 // js/fullscreen.js v1.6.5
 import { LS } from "./constants.js";
-import { applyAutoScale } from "./autoscale.js";
 import { setTopbarHiddenValue } from "./topbar.js";
+import { applyAutoScale } from "./autoscale.js";
 
 function isFullscreen(){
-  return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
+  return !!(document.fullscreenElement || document.webkitFullscreenElement);
 }
 function requestFullscreen(){
-  const el = document.documentElement;
-  (el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen)?.call(el);
+  (document.documentElement.requestFullscreen ||
+   document.documentElement.webkitRequestFullscreen)?.call(document.documentElement);
 }
 function exitFullscreen(){
-  (document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen)?.call(document);
+  (document.exitFullscreen || document.webkitExitFullscreen)?.call(document);
 }
 function isPortrait(){
   return matchMedia("(orientation: portrait)").matches;
 }
 
-export function updateFullscreenButton(dom){
-  if(!dom.fullscreenBtn) return;
-  dom.fullscreenBtn.textContent = isFullscreen() ? "⛶ 전체화면 해제" : "⛶ 전체화면";
-}
+export function initFullscreen(dom, rerender){
+  dom.fullscreenBtn.addEventListener("click", ()=>{
+    if(isFullscreen()) exitFullscreen();
+    else requestFullscreen();
+  });
 
-export function updateFsAndForceLandscapeState(dom){
-  const fs = isFullscreen();
-  const portrait = isPortrait();
+  const update = ()=>{
+    const fs = isFullscreen();
+    document.body.classList.toggle("fs-force-landscape", fs && isPortrait());
 
-  document.body.classList.toggle("fs-force-landscape", fs && portrait);
-
-  // fullscreen이면 상단바 자동 숨김(이전 상태 저장/복원)
-  if(fs){
-    if(localStorage.getItem(LS.AUTO_HIDE_TOPBAR_IN_FS) == null){
-      const prev = localStorage.getItem(LS.UI_TOPBAR_HIDDEN) === "1" ? "1" : "0";
-      localStorage.setItem(LS.AUTO_HIDE_TOPBAR_IN_FS, prev);
+    if(fs){
+      if(localStorage.getItem(LS.AUTO_HIDE_TOPBAR_IN_FS)==null){
+        localStorage.setItem(
+          LS.AUTO_HIDE_TOPBAR_IN_FS,
+          localStorage.getItem(LS.UI_TOPBAR_HIDDEN) === "1" ? "1":"0"
+        );
+      }
+      setTopbarHiddenValue(dom,true);
+    } else {
+      const prev = localStorage.getItem(LS.AUTO_HIDE_TOPBAR_IN_FS);
+      if(prev==="0"||prev==="1") setTopbarHiddenValue(dom, prev==="1");
+      localStorage.removeItem(LS.AUTO_HIDE_TOPBAR_IN_FS);
     }
-    setTopbarHiddenValue(dom, true);
-  } else {
-    const prev = localStorage.getItem(LS.AUTO_HIDE_TOPBAR_IN_FS);
-    if(prev === "0" || prev === "1"){
-      setTopbarHiddenValue(dom, prev === "1");
-    }
-    localStorage.removeItem(LS.AUTO_HIDE_TOPBAR_IN_FS);
-  }
 
-  updateFullscreenButton(dom);
-  applyAutoScale(dom);
-}
+    dom.fullscreenBtn.textContent = fs ? "⛶ 전체화면 해제" : "⛶ 전체화면";
+    applyAutoScale(dom);
+    rerender();
+  };
 
-export function initFullscreen(dom, after){
-  if(dom.fullscreenBtn){
-    dom.fullscreenBtn.addEventListener("click", ()=>{
-      if(isFullscreen()) exitFullscreen();
-      else requestFullscreen();
-    }, { passive:true });
-  }
+  ["fullscreenchange","webkitfullscreenchange"].forEach(e=>{
+    document.addEventListener(e, update);
+  });
+  window.addEventListener("orientationchange", update);
+  window.addEventListener("resize", update);
 
-  const handler = ()=>{ updateFsAndForceLandscapeState(dom); after?.(); };
-
-  ["fullscreenchange","webkitfullscreenchange","msfullscreenchange"]
-    .forEach(evt => document.addEventListener(evt, handler));
-
-  window.addEventListener("resize", handler);
-  window.addEventListener("orientationchange", handler);
-
-  handler();
+  update();
 }
