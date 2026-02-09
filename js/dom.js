@@ -1,9 +1,10 @@
-// js/dom.js v1.6.5
+// js/dom.js v1.6.5+ (add chomboBtn)
 export function getDom(){
   return {
     topbar: document.getElementById("topbar"),
     toggleTopbarBtn: document.getElementById("toggleTopbarBtn"),
     fullscreenBtn: document.getElementById("fullscreenBtn"),
+    chomboBtn: document.getElementById("chomboBtn"),
     tableRoot: document.getElementById("tableRoot"),
 
     seats: [...document.querySelectorAll(".seat")],
