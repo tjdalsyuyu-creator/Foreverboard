@@ -1,6 +1,7 @@
-// js/modals/drawModal.js v1.6.5
+// js/modals/drawModal.js v1.6.5+
 import { pushSnapshot, clearRiichiFlags, dealerAdvance, handAdvance } from "../state.js";
 import { openModal } from "./modalBase.js";
+import { checkTobiAndEnd } from "../scoring.js";
 
 export function openDrawModal(app, dom, onDone){
   const checks = app.runtime.players.map((p,i)=>`
@@ -16,7 +17,7 @@ export function openDrawModal(app, dom, onDone){
   `, ()=>{
     pushSnapshot(app);
 
-    const tenpais = [0,1,2,3].filter(i=>document.getElementById(`tp${i}`).checked);
+    const tenpais=[0,1,2,3].filter(i=>document.getElementById(`tp${i}`).checked);
     if(tenpais.length>0 && tenpais.length<4){
       const notens=[0,1,2,3].filter(i=>!tenpais.includes(i));
       const recv=Math.floor(3000/tenpais.length);
@@ -34,9 +35,13 @@ export function openDrawModal(app, dom, onDone){
       handAdvance(app);
     }
 
-    if(!app.ruleSet.riichiPotCarryOnDraw) app.runtime.roundState.riichiPot = 0;
+    if(!app.ruleSet.riichiPotCarryOnDraw) app.runtime.roundState.riichiPot=0;
 
     clearRiichiFlags(app);
+
+    // 토비 체크
+    checkTobiAndEnd(app);
+
     onDone?.();
   });
 }
