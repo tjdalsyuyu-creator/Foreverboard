@@ -1,4 +1,4 @@
-// js/actions.js v1.6.5
+// js/actions.js v1.6.5+
 import { pushSnapshot, popSnapshot, resetWithEastSelection, dealerAdvance } from "./state.js";
 import { render } from "./render.js";
 import { saveApp } from "./storage.js";
@@ -10,13 +10,19 @@ import { openMultiRonModal } from "./modals/multiRonModal.js";
 import { openSettingsModal } from "./modals/settingsModal.js";
 import { openSettlementModal } from "./modals/settlementModal.js";
 
-export function bindActions(app, dom){
-  // seat buttons (delegation)
+export function bindActions(app, dom, rerender){
+  const doRerender = ()=>{ saveApp(app); render(app, dom); };
+
   document.body.addEventListener("click",(e)=>{
     const btn = e.target.closest("button");
     if(!btn) return;
     const action = btn.dataset.action;
     if(!action) return;
+
+    // 게임 종료면 Reset/설정/정산만 허용(좌석 액션은 render에서 disabled 처리됨)
+    if(app.runtime.meta?.gameEnded){
+      return;
+    }
 
     const seat = Number(btn.dataset.seat);
 
@@ -27,7 +33,7 @@ export function bindActions(app, dom){
       p.riichi = true;
       p.score -= 1000;
       app.runtime.roundState.riichiPot += 1000;
-      saveApp(app); render(app, dom);
+      doRerender();
       return;
     }
 
@@ -35,73 +41,64 @@ export function bindActions(app, dom){
       pushSnapshot(app);
       app.runtime.players[seat].score -= 1000;
       app.runtime.roundState.riichiPot += 1000;
-      saveApp(app); render(app, dom);
+      doRerender();
       return;
     }
 
     if(action === "edit"){
-      openEditModal(app, dom, seat, ()=>{
-        saveApp(app); render(app, dom);
-      });
+      openEditModal(app, dom, seat, doRerender);
       return;
     }
 
     if(action === "tsumo"){
-      openTsumoModal(app, dom, seat, ()=>{
-        saveApp(app); render(app, dom);
-      });
+      openTsumoModal(app, dom, seat, doRerender);
       return;
     }
 
     if(action === "ron"){
-      openMultiRonModal(app, dom, seat, ()=>{
-        saveApp(app); render(app, dom);
-      });
+      openMultiRonModal(app, dom, seat, doRerender);
       return;
     }
   });
 
-  // center buttons
   dom.undoBtn.addEventListener("click", ()=>{
     const ok = popSnapshot(app);
     if(!ok) return;
-    saveApp(app); render(app, dom);
+    doRerender();
   });
 
   dom.resetBtn.addEventListener("click", ()=>{
-    openResetEastModal(app, dom, ()=>{
-      saveApp(app); render(app, dom);
-    });
+    openResetEastModal(app, dom, doRerender);
   });
 
   dom.nextDealerBtn.addEventListener("click", ()=>{
+    if(app.runtime.meta?.gameEnded) return;
     pushSnapshot(app);
     dealerAdvance(app);
-    saveApp(app); render(app, dom);
+    doRerender();
   });
 
   dom.addHonbaBtn.addEventListener("click", ()=>{
+    if(app.runtime.meta?.gameEnded) return;
     pushSnapshot(app);
     app.runtime.roundState.honba += 1;
-    saveApp(app); render(app, dom);
+    doRerender();
   });
 
   dom.subHonbaBtn.addEventListener("click", ()=>{
+    if(app.runtime.meta?.gameEnded) return;
     pushSnapshot(app);
     app.runtime.roundState.honba = Math.max(0, app.runtime.roundState.honba - 1);
-    saveApp(app); render(app, dom);
+    doRerender();
   });
 
   dom.drawBtn.addEventListener("click", ()=>{
-    openDrawModal(app, dom, ()=>{
-      saveApp(app); render(app, dom);
-    });
+    if(app.runtime.meta?.gameEnded) return;
+    openDrawModal(app, dom, doRerender);
   });
 
   dom.settingsBtn.addEventListener("click", ()=>{
-    openSettingsModal(app, dom, ()=>{
-      saveApp(app); render(app, dom);
-    });
+    openSettingsModal(app, dom, doRerender);
   });
 
   dom.settleBtn.addEventListener("click", ()=>{
@@ -110,7 +107,7 @@ export function bindActions(app, dom){
 }
 
 function openResetEastModal(app, dom, onDone){
-  const opts = app.runtime.players.map((p,i)=>`<option value="${i}">${p.name} (현재 ${i})</option>`).join("");
+  const opts = app.runtime.players.map((p,i)=>`<option value="${i}">${p.name} (현재 자리 ${i})</option>`).join("");
   openEditModal.raw(dom, "리셋 (동 위치 선택)", `
     <div class="field"><label>동(East)</label><select id="eastPick">${opts}</select></div>
   `, ()=>{
