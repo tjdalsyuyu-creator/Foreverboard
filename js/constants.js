@@ -11,12 +11,17 @@ export const LS = {
   ACTIVE_RULESET_ID: "mjp_v16_active_ruleset_id",
   HANDS_PLANS: "mjp_v16_hands_plans",
 
-  // ✅ 업데이트 팝업 고도화
+  // ✅ 업데이트 팝업(고도화)
   LAST_SEEN_VERSION: "mjp_last_seen_version",
   SKIP_UPDATES_UNTIL: "mjp_skip_updates_until", // 이 버전까지는 업데이트 팝업 스킵
 };
 
-// ✅ 버전별 릴리즈 노트(여기만 업데이트하면 됨)
+export const SCHEMA_VERSION = 2;
+
+export const SEATS = [0, 1, 2, 3];
+export const DEFAULT_NAMES = ["동", "남", "서", "북"];
+
+// ✅ 버전별 릴리즈 노트 (VERSION 올릴 때 여기만 추가/수정)
 export const RELEASE_NOTES = {
   "1.6.5": {
     title: "업데이트 v1.6.5",
