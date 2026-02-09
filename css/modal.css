@@ -1,0 +1,14 @@
+/* modal.css */
+dialog::backdrop{
+  background: rgba(0,0,0,0.6);
+}
+
+.modal{
+  min-width: min(860px, 92vw);
+  max-width: 92vw;
+  max-height: 86vh;
+  background: var(--bg-card);
+  border:1px solid var(--border-main);
+  border-radius:16px;
+  padding:12px;
+}
