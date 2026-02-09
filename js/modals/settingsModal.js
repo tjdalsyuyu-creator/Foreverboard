@@ -1,8 +1,11 @@
-// js/modals/settingsModal.js v1.6.5 FULL (Accordion + 2x2 Preset Grid)
+// js/modals/settingsModal.js v1.6.5 FULL (A-옵션 5개 포함)
 import { openModal } from "./modalBase.js";
 import { pushSnapshot } from "../state.js";
 
 export function openSettingsModal(app, dom, done) {
+  // 안전: options 없으면 기본 생성
+  if (!app.ruleSet.options) app.ruleSet.options = defaultOptions();
+
   const presetOptions = app.ruleSets
     .map(r => `<option value="${r.id}" ${r.id === app.ruleSet.id ? "selected" : ""}>${esc(r.name)}</option>`)
     .join("");
@@ -18,7 +21,6 @@ export function openSettingsModal(app, dom, done) {
       <details class="acc" open>
         <summary class="acc-summary">프리셋</summary>
         <div class="acc-body">
-
           <div class="field">
             <label>선택</label>
             <select id="presetSel">${presetOptions}</select>
@@ -76,9 +78,10 @@ export function openSettingsModal(app, dom, done) {
       </details>
 
       <!-- 옵션 -->
-      <details class="acc">
+      <details class="acc" open>
         <summary class="acc-summary">옵션</summary>
         <div class="acc-body">
+
           <div class="field">
             <label>멀티론</label>
             <select id="multiRonEnabled">
@@ -111,13 +114,57 @@ export function openSettingsModal(app, dom, done) {
               </select>
             </div>
           </div>
+
+          <hr/>
+
+          <!-- A-옵션 5개 -->
+          <div class="field">
+            <label>토비</label>
+            <select id="opt_tobi">
+              <option value="false" ${!app.ruleSet.options.tobiEnabled ? "selected" : ""}>OFF</option>
+              <option value="true" ${app.ruleSet.options.tobiEnabled ? "selected" : ""}>ON (0점 미만 종료)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>절상 만관</label>
+            <select id="opt_kiriage">
+              <option value="false" ${!app.ruleSet.options.kiriageMangan ? "selected" : ""}>OFF</option>
+              <option value="true" ${app.ruleSet.options.kiriageMangan ? "selected" : ""}>ON (3판60부/4판30부↑ 만관)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>2판 묶기</label>
+            <select id="opt_twoHan">
+              <option value="false" ${!app.ruleSet.options.twoHanShibari ? "selected" : ""}>OFF</option>
+              <option value="true" ${app.ruleSet.options.twoHanShibari ? "selected" : ""}>ON (5본장부터 2판↑)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>파오(책임지불)</label>
+            <select id="opt_pao">
+              <option value="false" ${!app.ruleSet.options.paoEnabled ? "selected" : ""}>OFF</option>
+              <option value="true" ${app.ruleSet.options.paoEnabled ? "selected" : ""}>ON (대삼원/대사희/사깡쯔)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>오라스 친 1등 연장</label>
+            <select id="opt_orasDealerKeep">
+              <option value="false" ${!app.ruleSet.options.orasDealerContinueEvenIfFirst ? "selected" : ""}>OFF</option>
+              <option value="true" ${app.ruleSet.options.orasDealerContinueEvenIfFirst ? "selected" : ""}>ON (1등이어도 계속 가능)</option>
+            </select>
+          </div>
+
         </div>
       </details>
 
     </div>
   `, () => {
     pushSnapshot(app);
-    applyFromUI(app);
+    applyFromUI(app);          // ✅ options 포함 저장
     done?.();
     return true;
   });
@@ -125,24 +172,37 @@ export function openSettingsModal(app, dom, done) {
   wirePresetButtons(app, dom, done);
 }
 
-/* ---------------- helpers ---------------- */
+/* ---------- helpers ---------- */
+function defaultOptions(){
+  return {
+    tobiEnabled: false,
+    kiriageMangan: false,
+    twoHanShibari: false,
+    paoEnabled: false,
+    orasDealerContinueEvenIfFirst: false,
+  };
+}
+
 function num(v){ return (v ?? 0); }
 function esc(s){
   return String(s).replace(/[&<>"']/g,(m)=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));
 }
 
 function applyFromUI(app){
+  // hands plan
   const handsSel = document.getElementById("handsSel")?.value;
   if (handsSel && app.handsPlans.some(h => h.id === handsSel)){
     app.runtime.roundState.handsPlanId = handsSel;
     app.ruleSet.endCondition.handsPlanId = handsSel;
   }
 
+  // base scores
   const startScore = Number(document.getElementById("startScore")?.value);
   const returnScore = Number(document.getElementById("returnScore")?.value);
   if (!Number.isNaN(startScore)) app.ruleSet.startScore = Math.max(0, Math.trunc(startScore));
   if (!Number.isNaN(returnScore)) app.ruleSet.returnScore = Math.max(0, Math.trunc(returnScore));
 
+  // oka/uma
   const okaK = Number(document.getElementById("okaK")?.value);
   const u1 = Number(document.getElementById("u1")?.value);
   const u2 = Number(document.getElementById("u2")?.value);
@@ -151,6 +211,7 @@ function applyFromUI(app){
   if (!Number.isNaN(okaK)) app.ruleSet.okaK = Math.trunc(okaK);
   app.ruleSet.umaK = [u1,u2,u3,u4].map(x => Number.isNaN(x) ? 0 : Math.trunc(x));
 
+  // existing options
   const mre = document.getElementById("multiRonEnabled")?.value;
   app.ruleSet.multiRon.enabled = (mre === "true");
 
@@ -161,9 +222,18 @@ function applyFromUI(app){
   const renTen = document.getElementById("renTenpai")?.value;
   app.ruleSet.renchan.onWin = (renWin === "true");
   app.ruleSet.renchan.onTenpai = (renTen === "true");
+
+  // ✅ A-옵션 5개 저장
+  if (!app.ruleSet.options) app.ruleSet.options = defaultOptions();
+
+  app.ruleSet.options.tobiEnabled = (document.getElementById("opt_tobi")?.value === "true");
+  app.ruleSet.options.kiriageMangan = (document.getElementById("opt_kiriage")?.value === "true");
+  app.ruleSet.options.twoHanShibari = (document.getElementById("opt_twoHan")?.value === "true");
+  app.ruleSet.options.paoEnabled = (document.getElementById("opt_pao")?.value === "true");
+  app.ruleSet.options.orasDealerContinueEvenIfFirst = (document.getElementById("opt_orasDealerKeep")?.value === "true");
 }
 
-/* ---------------- preset buttons ---------------- */
+/* ---------- preset buttons ---------- */
 function wirePresetButtons(app, dom, done){
   const loadBtn = document.getElementById("presetLoadBtn");
   const saveBtn = document.getElementById("presetSaveBtn");
@@ -180,6 +250,7 @@ function wirePresetButtons(app, dom, done){
     app.ruleSet = JSON.parse(JSON.stringify(found));
     app.activeRuleSetId = app.ruleSet.id;
 
+    // runtime handsPlan follow
     app.runtime.roundState.handsPlanId = app.ruleSet.endCondition.handsPlanId || app.runtime.roundState.handsPlanId;
 
     done?.();
