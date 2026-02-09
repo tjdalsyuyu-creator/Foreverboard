@@ -1,0 +1,12 @@
+/* responsive.css */
+@media (max-width: 820px) and (orientation: portrait){
+  .table{
+    display:flex;
+    flex-direction:column;
+  }
+
+  .seat,
+  .center{
+    transform:none !important;
+  }
+}
