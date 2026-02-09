@@ -7,13 +7,9 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="topbar">
+  <header class="topbar" id="topbar">
     <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.5</span></div>
     <div class="meta">
-      <span>국: <b id="roundLabel">E1</b></span>
-      <span>본장: <b id="honbaLabel">0</b></span>
-      <span>공탁: <b id="riichiPotLabel">0</b></span>
-
       <button id="settingsBtn" class="btn">⚙️ 설정</button>
       <button id="settleBtn" class="btn">📊 최종정산</button>
       <button id="undoBtn" class="btn">Undo</button>
@@ -28,6 +24,14 @@
     <section class="seat seat-left" data-seat="3"></section>
 
     <section class="center">
+      <!-- ✅ 상태표시를 센터로 이동 -->
+      <div class="statusbar">
+        <span>국: <b id="roundLabel">E1</b></span>
+        <span>본장: <b id="honbaLabel">0</b></span>
+        <span>공탁: <b id="riichiPotLabel">0</b></span>
+        <button id="toggleTopbarBtn" class="btn small">상단바 숨김</button>
+      </div>
+
       <div class="dealer">
         친: <b id="dealerName"></b>
         <button id="nextDealerBtn" class="btn small">친 이동</button>
