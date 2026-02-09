@@ -1,10 +1,9 @@
-// js/scoring.js v1.6.5+ (add chombo)
+// js/scoring.js v1.6.5+ (add resetPotCountsPerHand)
 import { SEATS } from "./constants.js";
 
 export function ceil100(x){ return Math.ceil(x/100)*100; }
 function opt(app){ return app.ruleSet.options || {}; }
 
-/* --- 기존 기능들(절상만관/2판묶기/파오/토비/유국만관) 그대로 --- */
 export function basicPoints(app, fu, han){
   const o = opt(app);
 
@@ -109,26 +108,23 @@ export function applyNagashiMangan(app, winnerSeat){
   }
 }
 
-/* =========================
-   ✅ Chombo (촌보)
-   - offender pays 3000 to each other (total 9000)
-   - round re-run: hand/honba/pot 유지
-========================= */
+/* ✅ 촌보 */
 export function applyChombo(app, offenderSeat){
   const PAY = 3000;
   for(const i of SEATS){
     if(i === offenderSeat) continue;
     transfer(app, offenderSeat, i, PAY);
   }
-
-  // 국/본장/공탁 유지, 다만 "재실행"이므로 리치 상태는 초기화
   for(const p of app.runtime.players){
     p.riichi = false;
   }
-
-  // 자동촌보 누적은 리셋
   app.runtime.players[offenderSeat].potCount = 0;
-
-  // 토비 체크
   checkTobiAndEnd(app);
+}
+
+/* ✅ NEW: 자동 촌보를 “국 단위”로 만들기 위한 리셋 함수 */
+export function resetPotCountsPerHand(app){
+  for(const p of app.runtime.players){
+    p.potCount = 0;
+  }
 }
