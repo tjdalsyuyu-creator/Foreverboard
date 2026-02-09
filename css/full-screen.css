@@ -1,0 +1,11 @@
+/* fullscreen.css */
+:fullscreen .table,
+:-webkit-full-screen .table{
+  height:100vh;
+}
+
+body.fs-force-landscape .table{
+  transform: translate(var(--autoTx,0), var(--autoTy,0))
+             scale(var(--autoScale,1));
+  transform-origin: top left;
+}
