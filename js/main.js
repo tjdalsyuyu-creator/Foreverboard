@@ -63,15 +63,19 @@ function buildUpdateHtml(note, version) {
   `;
 }
 
-function maybeShowUpdateNotice(dom) {
-  // 1) 사용자가 “vX까지 다시 보지 않기”를 켜둔 경우
-  const skipUntil = localStorage.getItem(LS.SKIP_UPDATES_UNTIL);
-  if (skipUntil && cmpSemver(VERSION, skipUntil) <= 0) return;
+function wireUpdateModalToggles() {
+  const btn = document.getElementById("toggleUpdateDetailBtn");
+  const box = document.getElementById("updateDetailBox");
+  if (btn && box) {
+    btn.addEventListener("click", () => {
+      const open = box.style.display !== "none";
+      box.style.display = open ? "none" : "block";
+      btn.textContent = open ? "자세히 보기" : "간단히 보기";
+    });
+  }
+}
 
-  // 2) 마지막으로 본 버전보다 현재 버전이 높을 때만 표시
-  const lastSeen = localStorage.getItem(LS.LAST_SEEN_VERSION) || "0.0.0";
-  if (cmpSemver(VERSION, lastSeen) <= 0) return;
-
+function openUpdateNotesModal(dom, { markSeen = true } = {}) {
   const note = RELEASE_NOTES[VERSION] || {
     title: `업데이트 v${VERSION}`,
     summary: ["변경 사항이 반영되었습니다."],
@@ -86,20 +90,23 @@ function maybeShowUpdateNotice(dom) {
       localStorage.removeItem(LS.SKIP_UPDATES_UNTIL);
     }
 
-    localStorage.setItem(LS.LAST_SEEN_VERSION, VERSION);
+    if (markSeen) {
+      localStorage.setItem(LS.LAST_SEEN_VERSION, VERSION);
+    }
     return true;
   });
 
-  // 모달 열린 직후 토글 버튼 연결
-  const btn = document.getElementById("toggleUpdateDetailBtn");
-  const box = document.getElementById("updateDetailBox");
-  if (btn && box) {
-    btn.addEventListener("click", () => {
-      const open = box.style.display !== "none";
-      box.style.display = open ? "none" : "block";
-      btn.textContent = open ? "자세히 보기" : "간단히 보기";
-    });
-  }
+  wireUpdateModalToggles();
+}
+
+function maybeShowUpdateNotice(dom) {
+  const skipUntil = localStorage.getItem(LS.SKIP_UPDATES_UNTIL);
+  if (skipUntil && cmpSemver(VERSION, skipUntil) <= 0) return;
+
+  const lastSeen = localStorage.getItem(LS.LAST_SEEN_VERSION) || "0.0.0";
+  if (cmpSemver(VERSION, lastSeen) <= 0) return;
+
+  openUpdateNotesModal(dom, { markSeen: true });
 }
 
 const app = loadApp();
@@ -113,8 +120,15 @@ const rerender = () => {
 // 초기 렌더
 render(app, dom);
 
-// ✅ 업데이트 팝업(고도화)
+// ✅ 자동 업데이트 팝업(새 버전일 때만)
 maybeShowUpdateNotice(dom);
+
+// ✅ 상단바 “업데이트” 버튼: 언제든 열기
+if (dom.updatesBtn) {
+  dom.updatesBtn.addEventListener("click", () => {
+    openUpdateNotesModal(dom, { markSeen: true });
+  });
+}
 
 // 기능 초기화
 bindActions(app, dom, rerender);
