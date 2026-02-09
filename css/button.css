@@ -1,26 +1,58 @@
-/* buttons.css */
+/* css/button.css v1.6.5 */
+
 .btn{
   padding:8px 10px;
-  border:1px solid #2a3a66;
+  border:1px solid var(--border-ui);
   background:#111d3b;
-  color:#eaf0ff;
+  color: var(--text-main);
   border-radius:10px;
   cursor:pointer;
 }
+.btn:hover{ filter:brightness(1.1); }
 
 .btn.primary{
   background: var(--accent);
   border-color: var(--accent);
 }
 
-.btn.small{
-  font-size:12px;
-  padding:6px 8px;
+.btn.danger{
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
 }
 
+.btn.small{
+  padding:6px 8px;
+  border-radius:8px;
+  font-size:12px;
+}
+
+.btn:disabled{
+  opacity:0.55;
+  cursor:not-allowed;
+  filter:none;
+}
+
+/* 리치 완료 버튼 */
+.btn.riichi-done{
+  background:#2b2f44;
+  border-color:#4a557a;
+  opacity:0.9;
+}
+
+/* 배지 */
 .badge{
   padding:2px 8px;
   border-radius:999px;
-  border:1px solid #2a3a66;
+  border:1px solid var(--border-ui);
   font-size:12px;
 }
+.badge.riichi{ border-color:#7a59ff; }
+
+/* 공통 */
+hr{ border:0; border-top:1px solid var(--border-main); margin:10px 0; }
+.small{ font-size:12px; opacity:0.85; }
+
+table{ width:100%; border-collapse:collapse; }
+td, th{ border-bottom:1px solid var(--border-main); padding:8px; text-align:left; }
+th{ opacity:0.9; }
+.right{ text-align:right; }
