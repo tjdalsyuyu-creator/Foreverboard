@@ -1,5 +1,4 @@
-/* style.css v1.6.0 */
-
+/* style.css v1.6.1 */
 * { box-sizing: border-box; }
 :root { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
 body { margin: 0; background: #0b1220; color: #eaf0ff; overflow-x: hidden; }
@@ -10,10 +9,7 @@ body { margin: 0; background: #0b1220; color: #eaf0ff; overflow-x: hidden; }
   position:sticky; top:0; z-index:10;
 }
 .topbar.hidden{ display:none; }
-
-body.topbar-hidden .table{
-  height: 100vh; /* ✅ 상단바 숨김 시 테이블 높이 보정 */
-}
+body.topbar-hidden .table{ height: 100vh; }
 
 .brand { font-weight:800; display:flex; gap:8px; align-items:center; }
 .ver { font-size:12px; opacity:0.8; padding:2px 8px; border:1px solid #2a3a66; border-radius:999px; }
@@ -28,21 +24,10 @@ body.topbar-hidden .table{
 .btn.primary{ background:#1a3cff; border-color:#1a3cff; }
 .btn.danger{ background:#3b1120; border-color:#66334a; }
 .btn.small{ padding:6px 8px; border-radius:8px; font-size:12px; }
-
 .btn:disabled{ opacity:0.55; cursor:not-allowed; filter:none; }
+.btn.riichi-done{ background:#2b2f44; border-color:#4a557a; opacity:0.9; }
 
-.btn.riichi-done{
-  background:#2b2f44;
-  border-color:#4a557a;
-  opacity:0.9;
-}
-
-.badge{
-  padding:2px 8px;
-  border-radius:999px;
-  border:1px solid #2a3a66;
-  font-size:12px;
-}
+.badge{ padding:2px 8px; border-radius:999px; border:1px solid #2a3a66; font-size:12px; }
 .badge.riichi{ border-color:#7a59ff; }
 
 .table{
@@ -101,6 +86,7 @@ body.topbar-hidden .table{
 .actions{ display:flex; gap:8px; flex-wrap:wrap; }
 .hint{ opacity:0.85; font-size:12px; line-height:1.4; }
 
+/* Modal */
 dialog::backdrop{ background: rgba(0,0,0,0.6); }
 .modal{
   min-width: min(860px, 92vw);
@@ -114,7 +100,6 @@ dialog::backdrop{ background: rgba(0,0,0,0.6); }
   color:#eaf0ff;
 }
 .modal-actions{ display:flex; justify-content:flex-end; gap:8px; padding:0; margin:12px 0 0; }
-
 .field{ display:flex; gap:10px; align-items:center; margin:10px 0; min-width:0; }
 .field label{ min-width:110px; opacity:0.9; }
 .field input, .field select{
@@ -133,7 +118,7 @@ td, th{ border-bottom:1px solid #213055; padding:8px; text-align:left; }
 th{ opacity:0.9; }
 .right{ text-align:right; }
 
-/* ✅ 모바일 세로: 회전 제거 + 스택(안정성) */
+/* 모바일 세로: 회전 제거 + 스택 */
 @media (max-width: 820px) and (orientation: portrait){
   .table{
     height:auto;
@@ -158,11 +143,12 @@ th{ opacity:0.9; }
   .score{ font-size:26px; }
 }
 
-/* ✅ 자동 스케일은 (가로+터치+낮은 높이)에서만 적용 */
+/* ✅ 가로+터치+낮은높이: JS가 계산한 바운딩박스 기준으로 scale+translate */
 @media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
   .table{
     --s: var(--autoScale, 1);
-    transform: scale(var(--s));
+    /* translate는 scale 뒤에 적용되도록: translate() scale() (CSS는 왼쪽이 마지막 적용) */
+    transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--s));
     transform-origin: top left;
     width: calc(100% / var(--s));
   }
