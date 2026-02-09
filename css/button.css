@@ -1,0 +1,26 @@
+/* buttons.css */
+.btn{
+  padding:8px 10px;
+  border:1px solid #2a3a66;
+  background:#111d3b;
+  color:#eaf0ff;
+  border-radius:10px;
+  cursor:pointer;
+}
+
+.btn.primary{
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.btn.small{
+  font-size:12px;
+  padding:6px 8px;
+}
+
+.badge{
+  padding:2px 8px;
+  border-radius:999px;
+  border:1px solid #2a3a66;
+  font-size:12px;
+}
