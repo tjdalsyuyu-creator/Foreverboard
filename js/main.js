@@ -7,7 +7,7 @@ import { initTopbar } from "./topbar.js";
 import { initFullscreen } from "./fullscreen.js";
 import { initAutoScale } from "./autoscale.js";
 
-import { VERSION, LS, RELEASE_NOTES } from "./constants.js";
+import { VERSION, UPDATE_NOTES_ID, LS, RELEASE_NOTES } from "./constants.js";
 import { openModal } from "./modals/modalBase.js";
 
 console.log("main.js v1.6.5 loaded");
@@ -31,9 +31,7 @@ function cmpSemver(a, b) {
 }
 
 function buildUpdateHtml(note, version) {
-  const summaryLis = (note?.summary || [])
-    .map((t) => `<li>${t}</li>`)
-    .join("");
+  const summaryLis = (note?.summary || []).map((t) => `<li>${t}</li>`).join("");
 
   return `
     <div class="small" style="line-height:1.6;">
@@ -57,7 +55,7 @@ function buildUpdateHtml(note, version) {
         <span>다시 보지 않기 (v${version}까지)</span>
       </label>
       <div style="opacity:.75; margin-top:6px;">
-        * 확인을 누르면 ‘마지막 확인 버전’이 업데이트됩니다.
+        * 확인을 누르면 ‘마지막 확인 버전/내역ID’가 업데이트됩니다.
       </div>
     </div>
   `;
@@ -84,14 +82,12 @@ function openUpdateNotesModal(dom, { markSeen = true } = {}) {
 
   openModal(dom, "업데이트", buildUpdateHtml(note, VERSION), () => {
     const chk = document.getElementById("skipUpdateUntilChk");
-    if (chk?.checked) {
-      localStorage.setItem(LS.SKIP_UPDATES_UNTIL, VERSION);
-    } else {
-      localStorage.removeItem(LS.SKIP_UPDATES_UNTIL);
-    }
+    if (chk?.checked) localStorage.setItem(LS.SKIP_UPDATES_UNTIL, VERSION);
+    else localStorage.removeItem(LS.SKIP_UPDATES_UNTIL);
 
     if (markSeen) {
       localStorage.setItem(LS.LAST_SEEN_VERSION, VERSION);
+      localStorage.setItem(LS.LAST_SEEN_UPDATE_NOTES_ID, UPDATE_NOTES_ID);
     }
     return true;
   });
@@ -103,8 +99,13 @@ function maybeShowUpdateNotice(dom) {
   const skipUntil = localStorage.getItem(LS.SKIP_UPDATES_UNTIL);
   if (skipUntil && cmpSemver(VERSION, skipUntil) <= 0) return;
 
-  const lastSeen = localStorage.getItem(LS.LAST_SEEN_VERSION) || "0.0.0";
-  if (cmpSemver(VERSION, lastSeen) <= 0) return;
+  const lastSeenVer = localStorage.getItem(LS.LAST_SEEN_VERSION) || "0.0.0";
+  const isNewVersion = cmpSemver(VERSION, lastSeenVer) > 0;
+
+  const lastSeenNotesId = localStorage.getItem(LS.LAST_SEEN_UPDATE_NOTES_ID) || "";
+  const isNewNotes = lastSeenNotesId !== UPDATE_NOTES_ID;
+
+  if (!isNewVersion && !isNewNotes) return;
 
   openUpdateNotesModal(dom, { markSeen: true });
 }
@@ -117,20 +118,16 @@ const rerender = () => {
   render(app, dom);
 };
 
-// 초기 렌더
 render(app, dom);
-
-// ✅ 자동 업데이트 팝업(새 버전일 때만)
 maybeShowUpdateNotice(dom);
 
-// ✅ 상단바 “업데이트” 버튼: 언제든 열기
+// 상단바 업데이트 버튼
 if (dom.updatesBtn) {
   dom.updatesBtn.addEventListener("click", () => {
     openUpdateNotesModal(dom, { markSeen: true });
   });
 }
 
-// 기능 초기화
 bindActions(app, dom, rerender);
 initTopbar(dom, rerender);
 initFullscreen(dom, rerender);
