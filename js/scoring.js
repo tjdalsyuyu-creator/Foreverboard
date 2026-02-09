@@ -1,4 +1,4 @@
-// js/scoring.js v1.6.5+ (add resetPotCountsPerHand)
+// js/scoring.js v1.6.5+ (Chombo refund deposits)
 import { SEATS } from "./constants.js";
 
 export function ceil100(x){ return Math.ceil(x/100)*100; }
@@ -14,9 +14,7 @@ export function basicPoints(app, fu, han){
   if(han >= 5)  return 2000;
 
   if(o.kiriageMangan){
-    if((han === 3 && fu >= 60) || (han === 4 && fu >= 30)){
-      return 2000;
-    }
+    if((han === 3 && fu >= 60) || (han === 4 && fu >= 30)) return 2000;
   }
 
   const b = fu * Math.pow(2, 2 + han);
@@ -56,12 +54,9 @@ export function applyPaoIfNeeded({ app, totalPay, loserSeat, paoSeat, isTsumo })
   if(!o.paoEnabled) return null;
   if(paoSeat == null) return null;
 
-  if(isTsumo){
-    return [{ from: paoSeat, toPay: totalPay }];
-  }
-  if(paoSeat === loserSeat){
-    return [{ from: loserSeat, toPay: totalPay }];
-  }
+  if(isTsumo) return [{ from: paoSeat, toPay: totalPay }];
+  if(paoSeat === loserSeat) return [{ from: loserSeat, toPay: totalPay }];
+
   const half1 = Math.floor(totalPay / 2);
   const half2 = totalPay - half1;
   return [
@@ -102,29 +97,47 @@ export function applyNagashiMangan(app, winnerSeat){
     const childPay  = ceil100(b * 1) + rs.honba * app.ruleSet.honba.tsumoBonusPerEach;
     for(const i of SEATS){
       if(i === winnerSeat) continue;
-      const amt = (i === dealer) ? dealerPay : childPay;
-      transfer(app, i, winnerSeat, amt);
+      transfer(app, i, winnerSeat, (i === dealer) ? dealerPay : childPay);
     }
   }
 }
 
-/* ✅ 촌보 */
+/* ✅ 촌보: 공탁 환불 + 3000x3 지급 + 국 재실행(국/본장/공탁 유지) */
 export function applyChombo(app, offenderSeat){
+  // 1) 이번 국에서 offender가 낸 공탁(리치/공탁 버튼 포함)을 환불
+  const offender = app.runtime.players[offenderSeat];
+  const deposits = Math.max(0, offender.depositCountHand || 0);
+  const refund = Math.min(app.runtime.roundState.riichiPot, deposits * 1000);
+
+  if(refund > 0){
+    app.runtime.roundState.riichiPot -= refund;
+    offender.score += refund;
+  }
+
+  // 2) 촌보 패널티: 나머지 3명에게 3000씩 지급
   const PAY = 3000;
   for(const i of SEATS){
     if(i === offenderSeat) continue;
     transfer(app, offenderSeat, i, PAY);
   }
+
+  // 3) 국 재실행: 국/본장/공탁 유지, 리치 상태는 해제
   for(const p of app.runtime.players){
     p.riichi = false;
   }
-  app.runtime.players[offenderSeat].potCount = 0;
+
+  // 4) 자동촌보 카운트/이번국 납부카운트 초기화(재실행이므로)
+  offender.potCount = 0;
+  offender.depositCountHand = 0;
+
+  // 5) 토비 체크
   checkTobiAndEnd(app);
 }
 
-/* ✅ NEW: 자동 촌보를 “국 단위”로 만들기 위한 리셋 함수 */
+/* ✅ 국 종료 시 자동촌보 카운트(국 단위) 리셋 */
 export function resetPotCountsPerHand(app){
   for(const p of app.runtime.players){
     p.potCount = 0;
+    p.depositCountHand = 0;
   }
 }
