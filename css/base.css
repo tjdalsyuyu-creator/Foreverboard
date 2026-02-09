@@ -1,16 +1,26 @@
-/* base.css */
+/* css/base.css v1.6.5 */
 * { box-sizing: border-box; }
 
-:root {
+:root{
   --bg-main: #0b1220;
   --bg-card: #0f1730;
+  --bg-chip: #0b1220;
+
   --border-main: #213055;
+  --border-ui: #2a3a66;
+
+  --text-main: #eaf0ff;
+
   --accent: #1a3cff;
+
+  --danger-bg: #3b1120;
+  --danger-border: #66334a;
 }
 
-body {
-  margin: 0;
+body{
+  margin:0;
   background: var(--bg-main);
-  color: #eaf0ff;
+  color: var(--text-main);
+  overflow-x: hidden;
   font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
 }
