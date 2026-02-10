@@ -110,3 +110,8 @@ export function popSnapshot(app){
   app.runtime = prev;
   return true;
 }
+// ✅ storage.js에서 import하는 deepClone 제공 (필수)
+export function deepClone(obj){
+  // 구조가 단순한 런타임 상태(순환참조 없음) 기준으로 가장 안전/빠름
+  return JSON.parse(JSON.stringify(obj));
+}
