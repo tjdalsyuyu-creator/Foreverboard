@@ -97,3 +97,8 @@ body.ui-fs-landscape .center{
 body.ui-fs-landscape{
   overflow: hidden;
 }
+/* ===== 회전(transform) 완전 차단 (layout.css override) ===== */
+body.ui-landscape .seat,
+body.ui-fs-landscape .seat{
+  transform: none !important;
+}
