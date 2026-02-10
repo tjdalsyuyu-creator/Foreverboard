@@ -1,14 +1,15 @@
 // js/fb-unity-shell.js
 (function initUnityShell() {
   const shell = document.getElementById("fbShell");
-  const btn = document.getElementById("fbFullscreenBtn");
+  const btnA = document.getElementById("fullscreenBtn");   // 기존 버튼
+  const btnB = document.getElementById("fbFullscreenBtn"); // footer 버튼(선택)
 
-  if (!shell || !btn) return;
+  if (!shell) return;
 
   async function toggleFullscreen() {
     try {
       if (!document.fullscreenElement) {
-        // 전체 문서 전체화면(가장 호환 좋음)
+        // 전체 문서 전체화면(호환성 최고)
         await document.documentElement.requestFullscreen?.();
       } else {
         await document.exitFullscreen?.();
@@ -18,7 +19,8 @@
     }
   }
 
-  btn.addEventListener("click", toggleFullscreen);
+  if (btnA) btnA.addEventListener("click", toggleFullscreen);
+  if (btnB) btnB.addEventListener("click", toggleFullscreen);
 
   document.addEventListener("fullscreenchange", () => {
     shell.classList.toggle("fb-fs", !!document.fullscreenElement);
