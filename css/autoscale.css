@@ -1,10 +1,14 @@
-/* css/autoscale.css v1.6.5 FIT-TO-SCREEN
-   - width 확장 금지(스크롤/잘림 원인)
-   - transform만 적용
+/* css/autoscale.css v1.6.7 FIT-TO-SCREEN
+   - transform은 "JS가 켤 때만" 적용 (미디어쿼리 자동 적용 제거)
+   - 모바일 브라우저 fullscreen/landscape에서 겹침(고스트) 방지
 */
-@media (pointer: coarse) and (orientation: landscape) and (max-height: 520px) {
-  .table{
-    transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--autoScale, 1));
-    transform-origin: top left;
-  }
+
+body.autoscale-on .table{
+  transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--autoScale, 1));
+  transform-origin: top left;
+
+  /* GPU 합성 고스트 완화 */
+  will-change: transform;
+  backface-visibility: hidden;
+  transform-style: preserve-3d;
 }
