@@ -1,18 +1,33 @@
-/* css/ui-landscape.css v1.6.8
+/* css/ui-landscape.css v1.6.8 HOTFIX
    가로(UI-landscape) + 전체화면(UI-fs-landscape) 전용
-   - 잘림 방지: height auto + min-height + overflow-y auto
+   - 잘림 해결: overflow-y auto + height auto
+   - autoscale/rotate 사용 안 함
 */
 
 body.ui-landscape .table,
 body.ui-fs-landscape .table{
-  /* ✅ 잘림 핵심 해결 */
+  /* ✅ 핵심: 잘림(344px) 방지 */
   height: auto !important;
   min-height: calc(100dvh - 56px) !important;
 
-  overflow-y: auto !important;
-  overflow-x: hidden !important;
+  overflow: auto !important;       /* ✅ overflow 자체를 auto로 */
+  overflow-x: hidden !important;   /* 좌우만 숨김 */
+
+  display: grid !important;
+  grid-template-rows: 1fr 1.2fr 1fr;
+  grid-template-columns: 1fr 1.2fr 1fr;
+
+  gap: 10px;
+  padding: 10px;
 
   align-content: start;
+  isolation: isolate;
+}
+
+/* 상단바 숨김이면 56px 보정 제거 */
+body.ui-landscape.topbar-hidden .table,
+body.ui-fs-landscape.topbar-hidden .table{
+  min-height: 100dvh !important;
 }
 
 /* rotate/transform 금지 */
@@ -23,4 +38,21 @@ body.ui-fs-landscape .center{
   transform: none !important;
   clip-path: inset(0 round 16px);
   contain: paint;
+  min-width: 0;
 }
+
+/* 위치 지정 (기존 클래스 그대로) */
+body.ui-landscape .seat-top,
+body.ui-fs-landscape .seat-top { grid-row:1; grid-column:2; }
+
+body.ui-landscape .seat-right,
+body.ui-fs-landscape .seat-right { grid-row:2; grid-column:3; }
+
+body.ui-landscape .seat-bottom,
+body.ui-fs-landscape .seat-bottom { grid-row:3; grid-column:2; }
+
+body.ui-landscape .seat-left,
+body.ui-fs-landscape .seat-left { grid-row:2; grid-column:1; }
+
+body.ui-landscape .center,
+body.ui-fs-landscape .center { grid-row:2; grid-column:2; }
