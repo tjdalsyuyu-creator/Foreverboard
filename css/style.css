@@ -1,4 +1,4 @@
-/* css/style.css v1.6.8 (ENTRY) */
+/* css/style.css v1.6.11 (ENTRY) */
 /* NOTE: @import는 반드시 파일 최상단에만 있어야 함 */
 
 @import "./base.css";
@@ -12,4 +12,4 @@
 
 /* ✅ UI 모드 분리 CSS는 반드시 맨 마지막 */
 @import "./ui-portrait.css?v=1.6.8";
-@import "./ui-landscape.css?v=1.6.8";
+@import "./ui-landscape.css?v=1.6.11";
