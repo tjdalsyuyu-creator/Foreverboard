@@ -3,14 +3,13 @@
 
 @import "./base.css";
 @import "./button.css";
-
-/* ✅ UI 모드 분리(세로/가로/전체화면가로) - 항상 layout보다 먼저 읽히게 배치 */
-@import "./ui-portrait.css?v=1.6.8";
-@import "./ui-landscape.css?v=1.6.8";
-
 @import "./layout.css";
 @import "./modal.css";
 @import "./modal-mobile.css";
 @import "./full-screen.css";
 @import "./autoscale.css";
 @import "./responsive.css";
+
+/* ✅ UI 모드 분리 CSS는 반드시 맨 마지막 */
+@import "./ui-portrait.css?v=1.6.8";
+@import "./ui-landscape.css?v=1.6.8";
