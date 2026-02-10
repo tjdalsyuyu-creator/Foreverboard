@@ -1,6 +1,5 @@
 /* ============================
-   Foreverboard Unity-like Skin
-   Scope: body.fb-unity-skin only
+   Foreverboard Unity-like Skin (Fit Scale)
    ============================ */
 
 body.fb-unity-skin {
@@ -8,7 +7,7 @@ body.fb-unity-skin {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  background: #0f1115; /* unity 느낌 다크 배경 */
+  background: #0f1115;
 }
 
 /* 기본: 16:9 프레임 */
@@ -16,7 +15,7 @@ body.fb-unity-skin #fbShell {
   width: min(96vw, calc(96vh * 16 / 9));
   height: calc(min(96vw, calc(96vh * 16 / 9)) * 9 / 16);
   display: grid;
-  grid-template-rows: 1fr auto; /* viewport + footer */
+  grid-template-rows: 1fr auto;
   border-radius: 12px;
   background: #151922;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
@@ -24,19 +23,27 @@ body.fb-unity-skin #fbShell {
   overflow: hidden;
 }
 
-/* 전체화면: 비율 고정 해제 */
-body.fb-unity-skin #fbShell.fb-fs {
+/* 전체화면: 모바일 주소창까지 고려해서 dvh 우선 */
+body.fb-unity-skin.fb-fullscreen #fbShell {
   width: 100vw;
-  height: 100vh;
+  height: 100dvh;
   border-radius: 0;
 }
 
-/* 실제 앱이 들어가는 영역 */
+/* 스크롤 금지 */
 body.fb-unity-skin #fbViewport {
   position: relative;
   width: 100%;
   height: 100%;
-  overflow: auto; /* 작은 화면에서 스크롤 */
+  overflow: hidden;
+}
+
+/* 앱 래퍼(여기에 transform scale이 걸림) */
+body.fb-unity-skin #fbApp {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: top left;
 }
 
 /* 유니티 footer 느낌 */
@@ -71,7 +78,6 @@ body.fb-unity-skin #fbFooter .right {
   gap: 8px;
 }
 
-/* footer 안에서만 버튼 톤 통일 (전역 button 건드리지 않음) */
 body.fb-unity-skin #fbFooter button {
   padding: 6px 10px;
   border-radius: 8px;
@@ -85,7 +91,10 @@ body.fb-unity-skin #fbFooter button:hover {
   background: rgba(255, 255, 255, 0.10);
 }
 
-/* 모달(dialog) 안전 z-index */
-dialog {
-  z-index: 9999;
+/* 전체화면 때 body 스크롤 차단 */
+body.fb-unity-skin.fb-fullscreen {
+  overflow: hidden;
 }
+
+/* 모달(dialog) 안전 z-index */
+dialog { z-index: 9999; }
