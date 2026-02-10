@@ -1,4 +1,4 @@
-// js/autoscale.js v1.6.5 FIT-TO-SCREEN (no scroll, no clip)
+// js/autoscale.js v1.6.6 FIT-TO-SCREEN (no scroll, no clip)
 export function applyAutoScale(dom){
   // reset vars
   document.documentElement.style.setProperty("--autoScale","1");
@@ -8,6 +8,11 @@ export function applyAutoScale(dom){
   const isCoarse = matchMedia("(pointer: coarse)").matches;
   const isLandscape = matchMedia("(orientation: landscape)").matches;
   const forceLandscapeUI = document.body.classList.contains("fs-force-landscape");
+
+  // ✅ 전체화면(가로)에서는 autoscale(transform)을 끄고,
+  //    vw/vh 기반 레이아웃으로 맡긴다 (겹침/중첩 렌더링 방지)
+  const isFullscreen = document.body.classList.contains("is-fullscreen");
+  if (isFullscreen && isLandscape && !forceLandscapeUI) return;
 
   // ✅ 가로이거나(실제) / 세로 전체화면 강제가로UI일 때만 적용
   if(!(isCoarse && (isLandscape || forceLandscapeUI))) return;
