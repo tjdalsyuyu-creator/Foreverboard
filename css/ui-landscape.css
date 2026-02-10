@@ -1,104 +1,26 @@
 /* css/ui-landscape.css v1.6.8
-   가로(UI-landscape) + 전체화면(UI-fs-landscape) 전용 레이아웃
-   - 4방 배치 유지
-   - 가능하면 rotate(transform) 없이 배치
-   - 전체화면은 이 레이아웃만 확장해서 사용
+   가로(UI-landscape) + 전체화면(UI-fs-landscape) 전용
+   - 잘림 방지: height auto + min-height + overflow-y auto
 */
 
 body.ui-landscape .table,
 body.ui-fs-landscape .table{
-  display: grid !important;
-  grid-template-rows: 1fr 1.2fr 1fr;
-  grid-template-columns: 1fr 1.2fr 1fr;
-  gap: 10px;
-  padding: 10px;
+  /* ✅ 잘림 핵심 해결 */
+  height: auto !important;
+  min-height: calc(100dvh - 56px) !important;
 
-  height: calc(100dvh - 56px);
-  overflow: hidden;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
 
-  /* 겹침 방지 */
-  isolation: isolate;
+  align-content: start;
 }
 
-/* ===== 좌석 기본 ===== */
+/* rotate/transform 금지 */
 body.ui-landscape .seat,
-body.ui-fs-landscape .seat{
-  border: 1px solid var(--border-main);
-  border-radius: 16px;
-  background: var(--bg-card);
-  padding: 10px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  min-width: 0;
-
-  /* 핵심: 셀 밖으로 그려지지 않게 */
-  clip-path: inset(0 round 16px);
-  contain: paint;
-}
-
-/* ===== 중앙 ===== */
-body.ui-landscape .center,
-body.ui-fs-landscape .center{
-  border: 1px solid var(--border-main);
-  border-radius: 16px;
-  background: var(--bg-card);
-  padding: 12px;
-
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 10px;
-
-  clip-path: inset(0 round 16px);
-  contain: paint;
-}
-
-/* ===== 그리드 위치 (회전 없이 배치) ===== */
-body.ui-landscape .seat-top,
-body.ui-fs-landscape .seat-top{
-  grid-row: 1;
-  grid-column: 2;
-}
-
-body.ui-landscape .seat-right,
-body.ui-fs-landscape .seat-right{
-  grid-row: 2;
-  grid-column: 3;
-}
-
-body.ui-landscape .seat-bottom,
-body.ui-fs-landscape .seat-bottom{
-  grid-row: 3;
-  grid-column: 2;
-}
-
-body.ui-landscape .seat-left,
-body.ui-fs-landscape .seat-left{
-  grid-row: 2;
-  grid-column: 1;
-}
-
-/* ===== 중앙 위치 ===== */
-body.ui-landscape .center,
-body.ui-fs-landscape .center{
-  grid-row: 2;
-  grid-column: 2;
-}
-
-/* ===== 전체화면에서 살짝 키우기(선택) ===== */
 body.ui-fs-landscape .seat,
+body.ui-landscape .center,
 body.ui-fs-landscape .center{
-  padding: 14px;
-}
-
-/* ===== 전체화면에서는 스크롤 완전 차단 ===== */
-body.ui-fs-landscape{
-  overflow: hidden;
-}
-/* ===== 회전(transform) 완전 차단 (layout.css override) ===== */
-body.ui-landscape .seat,
-body.ui-fs-landscape .seat{
   transform: none !important;
+  clip-path: inset(0 round 16px);
+  contain: paint;
 }
