@@ -1,4 +1,4 @@
-// js/fullscreen.js v1.6.5
+// js/fullscreen.js v1.6.6
 import { LS } from "./constants.js";
 import { setTopbarHiddenValue } from "./topbar.js";
 import { applyAutoScale } from "./autoscale.js";
@@ -25,6 +25,11 @@ export function initFullscreen(dom, rerender){
 
   const update = ()=>{
     const fs = isFullscreen();
+
+    // ✅ fullscreen 상태 플래그(autoscale/CSS에서 사용)
+    document.body.classList.toggle("is-fullscreen", fs);
+
+    // ✅ 세로 전체화면이면 강제가로 UI 유지(기존 로직)
     document.body.classList.toggle("fs-force-landscape", fs && isPortrait());
 
     if(fs){
