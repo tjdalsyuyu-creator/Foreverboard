@@ -1,4 +1,4 @@
-// js/dom.js v1.6.5+ (add updatesBtn)
+// js/dom.js v1.6.8+ (add updateTopbarHeightVar)
 export function getDom(){
   return {
     topbar: document.getElementById("topbar"),
@@ -14,22 +14,24 @@ export function getDom(){
 
     dealerName: document.getElementById("dealerName"),
     nextDealerBtn: document.getElementById("nextDealerBtn"),
-    drawBtn: document.getElementById("drawBtn"),
-    addHonbaBtn: document.getElementById("addHonbaBtn"),
-    subHonbaBtn: document.getElementById("subHonbaBtn"),
 
+    // topbar buttons
     settingsBtn: document.getElementById("settingsBtn"),
-
-    // ✅ 추가
     updatesBtn: document.getElementById("updatesBtn"),
-
     settleBtn: document.getElementById("settleBtn"),
     undoBtn: document.getElementById("undoBtn"),
     resetBtn: document.getElementById("resetBtn"),
 
-    modal: document.getElementById("modal"),
-    modalTitle: document.getElementById("modalTitle"),
-    modalBody: document.getElementById("modalBody"),
-    modalOk: document.getElementById("modalOk"),
+    // center buttons
+    drawBtn: document.getElementById("drawBtn"),
+    addHonbaBtn: document.getElementById("addHonbaBtn"),
+    subHonbaBtn: document.getElementById("subHonbaBtn"),
   };
+}
+
+// ✅ 실제 topbar 높이를 CSS 변수로 반영 (가로/전체화면 잘림 해결 핵심)
+export function updateTopbarHeightVar(dom){
+  const hidden = dom.topbar?.classList.contains("hidden");
+  const h = (!dom.topbar || hidden) ? 0 : dom.topbar.getBoundingClientRect().height;
+  document.documentElement.style.setProperty("--topbarH", `${Math.round(h)}px`);
 }
