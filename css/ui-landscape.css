@@ -1,33 +1,31 @@
-/* css/ui-landscape.css v1.6.8 HOTFIX
+/* css/ui-landscape.css v1.6.9
    가로(UI-landscape) + 전체화면(UI-fs-landscape) 전용
-   - 잘림 해결: overflow-y auto + height auto
-   - autoscale/rotate 사용 안 함
+   목표: 스크롤 없이 한 화면 고정 (no-scroll)
 */
 
 body.ui-landscape .table,
 body.ui-fs-landscape .table{
-  /* ✅ 핵심: 잘림(344px) 방지 */
-  height: auto !important;
-  min-height: calc(100dvh - 56px) !important;
+  position: relative;
 
-  overflow: auto !important;       /* ✅ overflow 자체를 auto로 */
-  overflow-x: hidden !important;   /* 좌우만 숨김 */
+  /* 기본: 한 화면 고정 */
+  height: calc(100dvh - 56px) !important;
+  overflow: hidden !important;      /* ✅ 이제 다시 hidden (no-scroll 목표) */
 
   display: grid !important;
-  grid-template-rows: 1fr 1.2fr 1fr;
-  grid-template-columns: 1fr 1.2fr 1fr;
+  grid-template-rows: 0.95fr 1.10fr 0.95fr;
+  grid-template-columns: 0.95fr 1.10fr 0.95fr;
 
-  gap: 10px;
-  padding: 10px;
+  gap: 8px;
+  padding: 8px;
 
-  align-content: start;
+  align-content: stretch;
   isolation: isolate;
 }
 
 /* 상단바 숨김이면 56px 보정 제거 */
 body.ui-landscape.topbar-hidden .table,
 body.ui-fs-landscape.topbar-hidden .table{
-  min-height: 100dvh !important;
+  height: 100dvh !important;
 }
 
 /* rotate/transform 금지 */
@@ -36,12 +34,15 @@ body.ui-fs-landscape .seat,
 body.ui-landscape .center,
 body.ui-fs-landscape .center{
   transform: none !important;
-  clip-path: inset(0 round 16px);
+  clip-path: inset(0 round 14px);
   contain: paint;
   min-width: 0;
+
+  padding: 8px !important;
+  border-radius: 14px !important;
 }
 
-/* 위치 지정 (기존 클래스 그대로) */
+/* 위치 지정 */
 body.ui-landscape .seat-top,
 body.ui-fs-landscape .seat-top { grid-row:1; grid-column:2; }
 
@@ -56,3 +57,56 @@ body.ui-fs-landscape .seat-left { grid-row:2; grid-column:1; }
 
 body.ui-landscape .center,
 body.ui-fs-landscape .center { grid-row:2; grid-column:2; }
+
+/* ====== 내부 요소 컴팩트 ====== */
+
+/* 점수 크기 줄이기 */
+body.ui-landscape .score,
+body.ui-fs-landscape .score{
+  font-size: 18px !important;
+  line-height: 1.1;
+}
+
+/* 버튼 전반 축소 */
+body.ui-landscape .btn,
+body.ui-fs-landscape .btn{
+  padding: 10px 12px !important;
+  border-radius: 14px !important;
+  font-size: 14px !important;
+}
+body.ui-landscape .btn.small,
+body.ui-fs-landscape .btn.small{
+  padding: 8px 10px !important;
+  font-size: 13px !important;
+}
+
+/* center 내부 여백/간격 축소 */
+body.ui-landscape .statusbar,
+body.ui-fs-landscape .statusbar{
+  gap: 8px !important;
+  padding: 6px 8px !important;
+}
+
+body.ui-landscape .dealer,
+body.ui-fs-landscape .dealer{
+  margin-top: 4px;
+}
+
+body.ui-landscape .center-actions,
+body.ui-fs-landscape .center-actions{
+  display: grid !important;
+  grid-template-columns: 1fr 1fr 1fr !important;
+  gap: 8px !important;
+}
+
+/* 힌트는 가로에서 공간을 너무 먹으니 숨김 */
+body.ui-landscape .hint,
+body.ui-fs-landscape .hint{
+  display: none !important;
+}
+
+/* seat 내부 버튼들도 너무 커지지 않게 */
+body.ui-landscape .actions,
+body.ui-fs-landscape .actions{
+  gap: 8px !important;
+}
