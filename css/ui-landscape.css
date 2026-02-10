@@ -50,7 +50,7 @@ body.ui-fs-landscape .table{
   position: relative;
 
   /* ✅ no-scroll 목표 */
-  height: calc(100dvh - 56px) !important;
+  height: calc(100dvh - var(--topbarH, 56px)) !important;
   overflow: hidden !important;
 
   display: grid !important;
@@ -67,7 +67,7 @@ body.ui-fs-landscape .table{
 /* 상단바 숨김이면 56px 보정 제거 */
 body.ui-landscape.topbar-hidden .table,
 body.ui-fs-landscape.topbar-hidden .table{
-  height: 100dvh !important;
+ height: 100dvh !important;
 }
 
 /* ------------------------------
