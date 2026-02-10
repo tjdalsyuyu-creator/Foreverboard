@@ -1,22 +1,22 @@
-/* css/ui-landscape.css v1.6.9
-   가로(UI-landscape) + 전체화면(UI-fs-landscape) 전용
-   목표: 스크롤 없이 한 화면 고정 (no-scroll)
+/* css/ui-landscape.css v1.6.9 (no-scroll, no-clip FIX)
+   - 목표: 스크롤 없이 한 화면 고정 + 잘림(clip) 방지
+   - 핵심: actions(5버튼) 높이 폭발을 막는다 (grid + ellipsis)
 */
 
 body.ui-landscape .table,
 body.ui-fs-landscape .table{
   position: relative;
 
-  /* 기본: 한 화면 고정 */
+  /* ✅ 한 화면 고정 */
   height: calc(100dvh - 56px) !important;
-  overflow: hidden !important;      /* ✅ 이제 다시 hidden (no-scroll 목표) */
+  overflow: hidden !important;
 
   display: grid !important;
   grid-template-rows: 0.95fr 1.10fr 0.95fr;
   grid-template-columns: 0.95fr 1.10fr 0.95fr;
 
-  gap: 8px;
-  padding: 8px;
+  gap: 6px;
+  padding: 6px;
 
   align-content: stretch;
   isolation: isolate;
@@ -28,18 +28,18 @@ body.ui-fs-landscape.topbar-hidden .table{
   height: 100dvh !important;
 }
 
-/* rotate/transform 금지 */
+/* 카드 공통(더 압축) */
 body.ui-landscape .seat,
 body.ui-fs-landscape .seat,
 body.ui-landscape .center,
 body.ui-fs-landscape .center{
   transform: none !important;
-  clip-path: inset(0 round 14px);
+  clip-path: inset(0 round 12px);
   contain: paint;
   min-width: 0;
 
-  padding: 8px !important;
-  border-radius: 14px !important;
+  padding: 6px !important;
+  border-radius: 12px !important;
 }
 
 /* 위치 지정 */
@@ -58,106 +58,92 @@ body.ui-fs-landscape .seat-left { grid-row:2; grid-column:1; }
 body.ui-landscape .center,
 body.ui-fs-landscape .center { grid-row:2; grid-column:2; }
 
-/* ====== 내부 요소 컴팩트 ====== */
+/* ====== 내부 요소 초압축 ====== */
 
-/* 점수 크기 줄이기 */
+/* 점수 더 축소 */
 body.ui-landscape .score,
 body.ui-fs-landscape .score{
-  font-size: 18px !important;
-  line-height: 1.1;
+  font-size: 16px !important;
+  line-height: 1.05 !important;
+  margin: 2px 0 !important;
 }
 
-/* 버튼 전반 축소 */
+/* 버튼 전반 더 축소 */
 body.ui-landscape .btn,
 body.ui-fs-landscape .btn{
-  padding: 10px 12px !important;
-  border-radius: 14px !important;
-  font-size: 14px !important;
+  padding: 6px 8px !important;
+  border-radius: 12px !important;
+  font-size: 12px !important;
+  line-height: 1.05 !important;
 }
 body.ui-landscape .btn.small,
 body.ui-fs-landscape .btn.small{
-  padding: 8px 10px !important;
-  font-size: 13px !important;
+  padding: 6px 8px !important;
+  font-size: 12px !important;
 }
 
-/* center 내부 여백/간격 축소 */
+/* ✅ 핵심: 좌석 버튼 5개 “높이 폭발” 방지 */
+body.ui-landscape .actions,
+body.ui-fs-landscape .actions{
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 4px !important;
+}
+
+/* 버튼 폭 100% + 한 줄 고정(길면 ... 처리) */
+body.ui-landscape .actions .btn,
+body.ui-fs-landscape .actions .btn{
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* center 상단 상태바 압축 */
 body.ui-landscape .statusbar,
 body.ui-fs-landscape .statusbar{
-  gap: 8px !important;
+  gap: 6px !important;
   padding: 6px 8px !important;
 }
 
-body.ui-landscape .dealer,
-body.ui-fs-landscape .dealer{
-  margin-top: 4px;
-}
-
+/* center-actions도 압축 */
 body.ui-landscape .center-actions,
 body.ui-fs-landscape .center-actions{
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr !important;
-  gap: 8px !important;
+  gap: 6px !important;
 }
 
-/* 힌트는 가로에서 공간을 너무 먹으니 숨김 */
+/* 힌트는 가로에서 숨김 */
 body.ui-landscape .hint,
 body.ui-fs-landscape .hint{
   display: none !important;
 }
 
-/* seat 내부 버튼들도 너무 커지지 않게 */
-body.ui-landscape .actions,
-body.ui-fs-landscape .actions{
-  gap: 8px !important;
-}
-/* ===== Ultra Compact Landscape (very small height devices) ===== */
+/* 초소형(높이 400px 이하)에서 더 압축 */
 @media (orientation: landscape) and (max-height: 400px){
-
   body.ui-landscape .table,
   body.ui-fs-landscape .table{
-    gap: 6px;
-    padding: 6px;
+    gap: 4px;
+    padding: 4px;
     grid-template-rows: 0.9fr 1.2fr 0.9fr;
     grid-template-columns: 0.9fr 1.2fr 0.9fr;
   }
 
-  /* 카드 내부 더 압축 */
-  body.ui-landscape .seat,
-  body.ui-fs-landscape .seat,
-  body.ui-landscape .center,
-  body.ui-fs-landscape .center{
-    padding: 6px !important;
-    border-radius: 12px !important;
+  body.ui-landscape .actions,
+  body.ui-fs-landscape .actions{
+    grid-template-columns: 1fr 1fr !important; /* 2열로 더 납작하게 */
+    gap: 4px !important;
   }
 
-  /* 점수 텍스트 더 축소 */
-  body.ui-landscape .score,
-  body.ui-fs-landscape .score{
-    font-size: 16px !important;
-  }
-
-  /* 버튼 더 작게 */
   body.ui-landscape .btn,
   body.ui-fs-landscape .btn{
-    padding: 8px 10px !important;
-    font-size: 13px !important;
-  }
-  body.ui-landscape .btn.small,
-  body.ui-fs-landscape .btn.small{
-    padding: 6px 8px !important;
-    font-size: 12px !important;
+    padding: 5px 7px !important;
+    font-size: 11px !important;
   }
 
-  /* center 액션 버튼 2열로 */
-  body.ui-landscape .center-actions,
-  body.ui-fs-landscape .center-actions{
-    grid-template-columns: 1fr 1fr !important;
-    gap: 6px !important;
-  }
-
-  /* dealer 영역 여백 제거 */
-  body.ui-landscape .dealer,
-  body.ui-fs-landscape .dealer{
-    margin: 0 !important;
+  body.ui-landscape .score,
+  body.ui-fs-landscape .score{
+    font-size: 15px !important;
   }
 }
