@@ -1,6 +1,5 @@
-/* css/layout.css v1.6.5 */
+/* css/layout.css v1.6.8 */
 
-/* Topbar */
 .topbar{
   display:flex;
   justify-content:space-between;
@@ -17,59 +16,39 @@
 .ver{ font-size:12px; opacity:0.8; padding:2px 8px; border:1px solid var(--border-ui); border-radius:999px; }
 .meta{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
 
-body.topbar-hidden .table{ height: 100vh; }
-
-/* Main table */
+/* Main table (기본) */
 .table{
   position: relative;
-
-  /* ✅ 모바일 주소창/툴바 변화로 vh가 튀는 문제 방지 */
   height: calc(100dvh - 56px);
-
   display: grid;
   grid-template-rows: 1fr 1.2fr 1fr;
   grid-template-columns: 1fr 1.2fr 1fr;
   gap: 10px;
   padding: 10px;
+
+  /* 기본값: 기존처럼 잘림 방지를 위해 모드별로 override */
+  overflow: hidden;
+
+  isolation: isolate;
 }
 
-/* 상단바 숨김 시 */
-body.topbar-hidden .table{ height: 100dvh; }
-
-/* seat cards */
-.seat{
+/* seat / center 기본 카드 스타일 */
+.seat, .center{
   border:1px solid var(--border-main);
   border-radius:16px;
   background: var(--bg-card);
   padding:10px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
   min-width:0;
 }
 
-/* rotated seats */
-.seat-top { grid-row:1; grid-column:2; transform: rotate(180deg); }
-.seat-right { grid-row:2; grid-column:3; transform: rotate(-90deg); }
+/* 기본 grid 자리 */
+.seat-top { grid-row:1; grid-column:2; }
+.seat-right { grid-row:2; grid-column:3; }
 .seat-bottom { grid-row:3; grid-column:2; }
-.seat-left { grid-row:2; grid-column:1; transform: rotate(90deg); }
+.seat-left { grid-row:2; grid-column:1; }
+.center { grid-row:2; grid-column:2; }
 
-/* center */
-.center{
-  grid-row:2;
-  grid-column:2;
-  border:1px solid var(--border-main);
-  border-radius:16px;
-  background: var(--bg-card);
-  padding:12px;
-  display:flex;
-  flex-direction:column;
-  justify-content:space-between;
-  gap:10px;
-  min-width:0;
-}
-
-/* statusbar (center top) */
+/* center 내부 */
 .statusbar{
   display:flex;
   gap:12px;
@@ -80,11 +59,4 @@ body.topbar-hidden .table{ height: 100dvh; }
   border-radius:14px;
   background: var(--bg-chip);
 }
-
-/* player UI */
-.player-head{ display:flex; justify-content:space-between; gap:8px; align-items:center; }
-.player-name{ font-weight:900; }
-.score{ font-size:22px; font-weight:900; letter-spacing:0.3px; }
-.actions{ display:flex; gap:8px; flex-wrap:wrap; }
-
 .hint{ opacity:0.85; font-size:12px; line-height:1.4; }
