@@ -110,3 +110,54 @@ body.ui-landscape .actions,
 body.ui-fs-landscape .actions{
   gap: 8px !important;
 }
+/* ===== Ultra Compact Landscape (very small height devices) ===== */
+@media (orientation: landscape) and (max-height: 400px){
+
+  body.ui-landscape .table,
+  body.ui-fs-landscape .table{
+    gap: 6px;
+    padding: 6px;
+    grid-template-rows: 0.9fr 1.2fr 0.9fr;
+    grid-template-columns: 0.9fr 1.2fr 0.9fr;
+  }
+
+  /* 카드 내부 더 압축 */
+  body.ui-landscape .seat,
+  body.ui-fs-landscape .seat,
+  body.ui-landscape .center,
+  body.ui-fs-landscape .center{
+    padding: 6px !important;
+    border-radius: 12px !important;
+  }
+
+  /* 점수 텍스트 더 축소 */
+  body.ui-landscape .score,
+  body.ui-fs-landscape .score{
+    font-size: 16px !important;
+  }
+
+  /* 버튼 더 작게 */
+  body.ui-landscape .btn,
+  body.ui-fs-landscape .btn{
+    padding: 8px 10px !important;
+    font-size: 13px !important;
+  }
+  body.ui-landscape .btn.small,
+  body.ui-fs-landscape .btn.small{
+    padding: 6px 8px !important;
+    font-size: 12px !important;
+  }
+
+  /* center 액션 버튼 2열로 */
+  body.ui-landscape .center-actions,
+  body.ui-fs-landscape .center-actions{
+    grid-template-columns: 1fr 1fr !important;
+    gap: 6px !important;
+  }
+
+  /* dealer 영역 여백 제거 */
+  body.ui-landscape .dealer,
+  body.ui-fs-landscape .dealer{
+    margin: 0 !important;
+  }
+}
