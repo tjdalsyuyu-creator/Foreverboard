@@ -1,17 +1,17 @@
-/* css/ui-landscape.css v1.6.10
+/* css/ui-landscape.css v1.6.11
    목표: 가로/전체화면에서 "스크롤 0 + 잘림 0"
    핵심:
-   1) topbar가 2줄로 커지는 것 방지 + 높이 축소
-   2) seat/center 내부 간격/패딩/폰트/버튼 높이 초압축
-   3) 초소형 높이에서는 2단계(ultra)로 추가 압축
+   - 좌석 actions(버튼들) 높이 폭발 방지: 2열 고정 + ellipsis
+   - center(상태/딜러/센터액션) 초압축
+   - topbar 2줄 방지 + 높이 압축
 */
 
-/* --------------------------------
-   0) LANDSCAPE TOPBAR COMPACT
---------------------------------- */
+/* ------------------------------
+   0) TOPBAR: 2줄 방지 + 압축
+------------------------------ */
 body.ui-landscape #topbar.topbar,
 body.ui-fs-landscape #topbar.topbar{
-  padding: 6px 10px !important;     /* ✅ 높이 확 줄임 */
+  padding: 6px 10px !important;
   gap: 8px !important;
   align-items: center !important;
 }
@@ -30,7 +30,7 @@ body.ui-fs-landscape #topbar .ver{
 
 body.ui-landscape #topbar .meta,
 body.ui-fs-landscape #topbar .meta{
-  flex-wrap: nowrap !important;      /* ✅ 2줄 방지(가장 중요) */
+  flex-wrap: nowrap !important; /* ✅ 2줄 방지 */
   gap: 6px !important;
 }
 
@@ -42,23 +42,23 @@ body.ui-fs-landscape #topbar .btn{
   border-radius: 12px !important;
 }
 
-/* --------------------------------
-   1) TABLE: NO-SCROLL FIXED SCREEN
---------------------------------- */
+/* ------------------------------
+   1) TABLE: no-scroll 고정
+------------------------------ */
 body.ui-landscape .table,
 body.ui-fs-landscape .table{
   position: relative;
 
-  /* ✅ 한 화면 고정 */
-  height: calc(100dvh - 56px) !important;  /* 기존 구조 유지 */
+  /* ✅ no-scroll 목표 */
+  height: calc(100dvh - 56px) !important;
   overflow: hidden !important;
 
   display: grid !important;
-  grid-template-rows: 0.92fr 1.16fr 0.92fr;
-  grid-template-columns: 0.92fr 1.16fr 0.92fr;
+  grid-template-rows: 0.90fr 1.20fr 0.90fr;
+  grid-template-columns: 0.90fr 1.20fr 0.90fr;
 
-  gap: 6px !important;
-  padding: 6px !important;
+  gap: 4px !important;
+  padding: 4px !important;
 
   align-content: stretch;
   isolation: isolate;
@@ -70,9 +70,9 @@ body.ui-fs-landscape.topbar-hidden .table{
   height: 100dvh !important;
 }
 
-/* --------------------------------
-   2) CARDS: ULTRA COMPACT
---------------------------------- */
+/* ------------------------------
+   2) 카드 공통: 초압축
+------------------------------ */
 body.ui-landscape .seat,
 body.ui-fs-landscape .seat,
 body.ui-landscape .center,
@@ -82,7 +82,7 @@ body.ui-fs-landscape .center{
   contain: paint;
   min-width: 0;
 
-  padding: 6px !important;
+  padding: 5px !important;
   border-radius: 12px !important;
 }
 
@@ -102,47 +102,41 @@ body.ui-fs-landscape .seat-left { grid-row:2; grid-column:1; }
 body.ui-landscape .center,
 body.ui-fs-landscape .center { grid-row:2; grid-column:2; }
 
-/* --------------------------------
-   3) TEXT / BUTTONS SHRINK
---------------------------------- */
+/* ------------------------------
+   3) 좌석(Seat) 내부: 높이 폭발 방지
+------------------------------ */
 
-/* 점수 더 작게 */
+/* 점수 더 축소 */
 body.ui-landscape .score,
 body.ui-fs-landscape .score{
-  font-size: 15px !important;
+  font-size: 14px !important;
   line-height: 1.05 !important;
   margin: 2px 0 !important;
 }
 
-/* 플레이어 이름/머리 영역도 조금 압축 */
-body.ui-landscape .player-head,
-body.ui-fs-landscape .player-head{
-  gap: 6px !important;
-}
-
-/* 버튼 전반: 높이 줄이기 */
+/* 버튼 공통(더 낮게) */
 body.ui-landscape .btn,
 body.ui-fs-landscape .btn{
-  padding: 5px 8px !important;
-  font-size: 12px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
   line-height: 1.05 !important;
   border-radius: 12px !important;
 }
-
 body.ui-landscape .btn.small,
 body.ui-fs-landscape .btn.small{
-  padding: 5px 8px !important;
-  font-size: 12px !important;
+  padding: 4px 7px !important;
+  font-size: 11px !important;
 }
 
-/* ✅ 좌석 버튼 영역(높이 폭발 주범) */
+/* ✅ 가장 중요: 좌석 actions는 "항상 2열"로 고정해서 세로 높이 줄이기 */
 body.ui-landscape .actions,
 body.ui-fs-landscape .actions{
   display: grid !important;
-  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  grid-template-columns: 1fr 1fr !important;
   gap: 4px !important;
 }
 
+/* 버튼은 한 줄 고정(줄바꿈이 높이 늘리는 주범) */
 body.ui-landscape .actions .btn,
 body.ui-fs-landscape .actions .btn{
   width: 100% !important;
@@ -151,25 +145,35 @@ body.ui-fs-landscape .actions .btn{
   text-overflow: ellipsis !important;
 }
 
-/* center 내부도 압축 */
+/* ------------------------------
+   4) center 내부: 더 압축
+------------------------------ */
 body.ui-landscape .statusbar,
 body.ui-fs-landscape .statusbar{
   gap: 6px !important;
-  padding: 6px 8px !important;
+  padding: 5px 7px !important;
 }
 
+/* statusbar 텍스트 작게 */
+body.ui-landscape .statusbar span,
+body.ui-fs-landscape .statusbar span{
+  font-size: 12px !important;
+}
+
+/* dealer 영역(친/친이동) 높이 줄이기 */
 body.ui-landscape .dealer,
 body.ui-fs-landscape .dealer{
   margin: 0 !important;
   padding: 0 !important;
+  font-size: 12px !important;
 }
 
-/* center-actions는 3열 유지하되 더 촘촘 */
+/* center-actions: 2열로 고정(세로 높이 절약) */
 body.ui-landscape .center-actions,
 body.ui-fs-landscape .center-actions{
   display: grid !important;
-  grid-template-columns: 1fr 1fr 1fr !important;
-  gap: 6px !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 4px !important;
 }
 
 /* 힌트는 가로에서 항상 숨김 */
@@ -178,13 +182,11 @@ body.ui-fs-landscape .hint{
   display: none !important;
 }
 
-/* --------------------------------
-   4) ULTRA MODE (VERY SMALL HEIGHT)
-   - 여기서 70px를 확실히 깎아냄
---------------------------------- */
-@media (orientation: landscape) and (max-height: 430px){
+/* ------------------------------
+   5) Ultra (아주 낮은 높이) 2단계 추가 압축
+------------------------------ */
+@media (orientation: landscape) and (max-height: 450px){
 
-  /* topbar 더 줄이기 */
   body.ui-landscape #topbar.topbar,
   body.ui-fs-landscape #topbar.topbar{
     padding: 4px 8px !important;
@@ -196,11 +198,10 @@ body.ui-fs-landscape .hint{
     font-size: 11px !important;
   }
 
-  /* table 더 압축 */
   body.ui-landscape .table,
   body.ui-fs-landscape .table{
-    gap: 4px !important;
-    padding: 4px !important;
+    gap: 3px !important;
+    padding: 3px !important;
     grid-template-rows: 0.88fr 1.24fr 0.88fr !important;
     grid-template-columns: 0.88fr 1.24fr 0.88fr !important;
   }
@@ -209,32 +210,19 @@ body.ui-fs-landscape .hint{
   body.ui-fs-landscape .seat,
   body.ui-landscape .center,
   body.ui-fs-landscape .center{
-    padding: 5px !important;
+    padding: 4px !important;
     border-radius: 12px !important;
   }
 
   body.ui-landscape .score,
   body.ui-fs-landscape .score{
-    font-size: 14px !important;
+    font-size: 13px !important;
   }
 
-  body.ui-landscape .btn,
-  body.ui-fs-landscape .btn{
-    padding: 4px 7px !important;
+  /* center-actions 버튼 더 낮게 */
+  body.ui-landscape .center-actions .btn,
+  body.ui-fs-landscape .center-actions .btn{
+    padding: 4px 6px !important;
     font-size: 11px !important;
-  }
-
-  /* 좌석 버튼 2열로 바꿔서 높이를 확 낮춤 */
-  body.ui-landscape .actions,
-  body.ui-fs-landscape .actions{
-    grid-template-columns: 1fr 1fr !important;
-    gap: 4px !important;
-  }
-
-  /* center-actions도 2열로 바꿔서 세로 높이 절약 */
-  body.ui-landscape .center-actions,
-  body.ui-fs-landscape .center-actions{
-    grid-template-columns: 1fr 1fr !important;
-    gap: 4px !important;
   }
 }
