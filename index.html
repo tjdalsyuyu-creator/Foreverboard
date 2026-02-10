@@ -1,70 +1,97 @@
-<!-- index.html v1.6.8 (ES Modules) -->
+<!-- index.html v1.6.8 (ES Modules) + Unity-like Shell -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Mahjong Score Pointer v1.6.8</title>
+
+  <!-- 기존 스타일 -->
   <link rel="stylesheet" href="css/style.css?v=1.6.8" />
+
+  <!-- Unity-like skin (신규) -->
+  <link rel="stylesheet" href="css/unity-skin.css?v=1.0" />
 </head>
-<body>
-  <header class="topbar" id="topbar">
-    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.8</span></div>
-    <div class="meta">
-      <button id="settingsBtn" class="btn">⚙️ 설정</button>
-      <button id="updatesBtn" class="btn">📝 업데이트</button>
-      <button id="settleBtn" class="btn">📊 최종정산</button>
-      <button id="undoBtn" class="btn">Undo</button>
-      <button id="resetBtn" class="btn danger">Reset</button>
+
+<body class="fb-unity-skin">
+  <!-- Unity WebGL 느낌 Shell -->
+  <div id="fbShell">
+    <div id="fbViewport">
+      <!-- ======= 기존 앱 마크업(그대로) ======= -->
+      <header class="topbar" id="topbar">
+        <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.8</span></div>
+        <div class="meta">
+          <button id="settingsBtn" class="btn">⚙️ 설정</button>
+          <button id="updatesBtn" class="btn">📝 업데이트</button>
+          <button id="settleBtn" class="btn">📊 최종정산</button>
+          <button id="undoBtn" class="btn">Undo</button>
+          <button id="resetBtn" class="btn danger">Reset</button>
+        </div>
+      </header>
+
+      <main class="table" id="tableRoot">
+        <section class="seat seat-top" data-seat="0"></section>
+        <section class="seat seat-right" data-seat="1"></section>
+        <section class="seat seat-bottom" data-seat="2"></section>
+        <section class="seat seat-left" data-seat="3"></section>
+
+        <section class="center">
+          <div class="statusbar">
+            <span>국: <b id="roundLabel">E1</b></span>
+            <span>본장: <b id="honbaLabel">0</b></span>
+            <span>공탁: <b id="riichiPotLabel">0</b></span>
+
+            <!-- 기존 전체화면 버튼 그대로 유지 -->
+            <button id="fullscreenBtn" class="btn small">⛶ 전체화면</button>
+            <button id="toggleTopbarBtn" class="btn small">상단바 숨김</button>
+            <button id="chomboBtn" class="btn small danger">촌보</button>
+          </div>
+
+          <div class="dealer">
+            친: <b id="dealerName"></b>
+            <button id="nextDealerBtn" class="btn small">친 이동</button>
+          </div>
+
+          <div class="center-actions">
+            <button id="drawBtn" class="btn">유국(텐파이 정산)</button>
+            <button id="addHonbaBtn" class="btn">본장 +1</button>
+            <button id="subHonbaBtn" class="btn">본장 -1</button>
+          </div>
+
+          <div class="hint">
+            ✔ 멀티론: 중복지급(더블/트리플)<br/>
+            ✔ 공탁: 방총자 기준 “가까운 승자”(동→남→서→북) 1명이 전액 수령<br/>
+            ✔ 최종정산: {(점수 - 리턴) + 오카 + 우마} × 2
+          </div>
+        </section>
+      </main>
+
+      <div id="rotateHintOverlay">
+        <div class="box">
+          <div class="title">가로로 돌려주세요</div>
+          <div class="desc">
+            전체화면에서는 가로 UI만 사용합니다.<br/>
+            세로 상태라도 전체화면을 누르면 가로 UI로 표시됩니다.
+          </div>
+        </div>
+      </div>
+      <!-- ======= /기존 앱 마크업 ======= -->
     </div>
-  </header>
 
-  <main class="table" id="tableRoot">
-    <section class="seat seat-top" data-seat="0"></section>
-    <section class="seat seat-right" data-seat="1"></section>
-    <section class="seat seat-bottom" data-seat="2"></section>
-    <section class="seat seat-left" data-seat="3"></section>
-
-    <section class="center">
-      <div class="statusbar">
-        <span>국: <b id="roundLabel">E1</b></span>
-        <span>본장: <b id="honbaLabel">0</b></span>
-        <span>공탁: <b id="riichiPotLabel">0</b></span>
-
-        <button id="fullscreenBtn" class="btn small">⛶ 전체화면</button>
-        <button id="toggleTopbarBtn" class="btn small">상단바 숨김</button>
-        <button id="chomboBtn" class="btn small danger">촌보</button>
+    <!-- Unity footer 느낌(신규) -->
+    <div id="fbFooter">
+      <div class="left">
+        <span class="dot" aria-hidden="true"></span>
+        <span>Foreverboard Shell</span>
       </div>
-
-      <div class="dealer">
-        친: <b id="dealerName"></b>
-        <button id="nextDealerBtn" class="btn small">친 이동</button>
-      </div>
-
-      <div class="center-actions">
-        <button id="drawBtn" class="btn">유국(텐파이 정산)</button>
-        <button id="addHonbaBtn" class="btn">본장 +1</button>
-        <button id="subHonbaBtn" class="btn">본장 -1</button>
-      </div>
-
-      <div class="hint">
-        ✔ 멀티론: 중복지급(더블/트리플)<br/>
-        ✔ 공탁: 방총자 기준 “가까운 승자”(동→남→서→북) 1명이 전액 수령<br/>
-        ✔ 최종정산: {(점수 - 리턴) + 오카 + 우마} × 2
-      </div>
-    </section>
-  </main>
-
-  <div id="rotateHintOverlay">
-    <div class="box">
-      <div class="title">가로로 돌려주세요</div>
-      <div class="desc">
-        전체화면에서는 가로 UI만 사용합니다.<br/>
-        세로 상태라도 전체화면을 누르면 가로 UI로 표시됩니다.
+      <div class="right">
+        <!-- 별도 버튼을 두고 싶으면 이걸 사용(선택) -->
+        <button id="fbFullscreenBtn" type="button" aria-label="Fullscreen">Fullscreen</button>
       </div>
     </div>
   </div>
 
+  <!-- ✅ 모달(dialog)은 반드시 body 직속 유지 -->
   <dialog id="modal">
     <form method="dialog" class="modal">
       <h3 id="modalTitle">Action</h3>
@@ -76,6 +103,10 @@
     </form>
   </dialog>
 
+  <!-- Unity shell controller (신규) -->
+  <script src="js/fb-unity-shell.js?v=1.0"></script>
+
+  <!-- 기존 엔트리 -->
   <script type="module" src="js/main.js?v=1.6.8"></script>
 </body>
 </html>
