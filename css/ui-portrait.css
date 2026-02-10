@@ -1,33 +1,30 @@
 /* css/ui-portrait.css v1.6.8
-   세로(UI-portrait) 전용 레이아웃
-   - 4방 배치/회전(transform) 금지
-   - 카드 4개를 세로로 쌓는 “안정형” UI
-   - 겹침/스케일 문제를 구조적으로 제거
+   세로(UI-portrait) 전용: 리스트형
 */
 
 body.ui-portrait .table{
-  display: block !important;
+  display: flex !important;
+  flex-direction: column !important;
   height: calc(100dvh - 56px) !important;
   overflow-y: auto !important;
   overflow-x: hidden !important;
   padding: 10px !important;
+  gap: 10px !important;
 }
 
-/* 세로에서는 좌석/센터를 회전시키지 않는다 */
+/* 세로에서는 회전/스케일 금지 */
 body.ui-portrait .seat,
 body.ui-portrait .center{
   transform: none !important;
   width: 100% !important;
   max-width: 720px;
-  margin: 0 auto 10px auto;
+  margin: 0 auto;
   box-sizing: border-box;
 
-  /* 혹시 남아있는 겹침 방지 */
   clip-path: inset(0 round 16px);
   contain: paint;
 }
 
-/* 세로에서는 그리드 배치 속성 무력화 */
 body.ui-portrait .seat-top,
 body.ui-portrait .seat-right,
 body.ui-portrait .seat-bottom,
@@ -37,21 +34,9 @@ body.ui-portrait .center{
   grid-column: auto !important;
 }
 
-/* 시각적으로 “센터 먼저” 보이게 */
-body.ui-portrait .center{
-  order: 0;
-}
+/* center(국 표시/버튼) 맨 위 */
+body.ui-portrait .center{ order: 0; }
 body.ui-portrait .seat-top{ order: 1; }
 body.ui-portrait .seat-right{ order: 2; }
 body.ui-portrait .seat-bottom{ order: 3; }
 body.ui-portrait .seat-left{ order: 4; }
-
-/* 세로에서는 상단바가 sticky라 화면을 덜 가리도록 버튼 살짝 압축(선택) */
-@media (max-width: 520px) and (orientation: portrait){
-  body.ui-portrait .statusbar{
-    gap: 8px;
-  }
-  body.ui-portrait .statusbar .btn.small{
-    padding: 10px 12px;
-  }
-}
