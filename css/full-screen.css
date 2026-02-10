@@ -1,11 +1,21 @@
-/* css/full-screen.css v1.6.5 FIT-TO-SCREEN
+/* css/full-screen.css v1.6.6 FIT-TO-SCREEN
    - 스크롤 허용(overflow auto) 금지
    - force-landscape에서도 transform만 적용 (한 화면에 맞춤)
+   - ✅ 전체화면(가로)에서 transform 충돌로 화면이 겹치는 현상 방지
 */
 
 /* Fullscreen table height */
 :fullscreen .table { height: 100vh; }
 :-webkit-full-screen .table { height: 100vh; }
+
+/* ✅ 전체화면(가로)에서는 autoscale transform을 끄고, 뷰포트 레이아웃으로 고정
+   - iOS/안드로이드 일부 브라우저에서 transform + fullscreen 조합이
+     중첩 렌더링(화면이 2~3장 겹쳐 보임)을 유발하는 케이스 방지
+   - 세로 전체화면 강제가로UI(fs-force-landscape)에서는 기존대로 transform 허용
+*/
+body.is-fullscreen:not(.fs-force-landscape) .table{
+  transform: none !important;
+}
 
 /* Rotate hint overlay */
 #rotateHintOverlay{
