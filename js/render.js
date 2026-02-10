@@ -1,11 +1,9 @@
-// js/render.js v1.6.5+ (wind mapping by eastSeatPos)
+// js/render.js v1.6.8+ (click seat to set East, CCW mapping)
 import { currentHandLabel } from "./state.js";
 import { applyAutoScale } from "./autoscale.js";
 
 const WINDS = ["동", "남", "서", "북"];
-// 화면 좌석(data-seat): 0=top, 1=right, 2=bottom, 3=left
-// 반시계(CCW): top -> left -> bottom -> right
-const CCW_PHYSICAL_ORDER = [0, 3, 2, 1];
+const CCW_PHYSICAL_ORDER = [0, 3, 2, 1]; // top -> left -> bottom -> right
 
 function buildPhysicalToPlayerMap(eastSeatPos){
   const start = CCW_PHYSICAL_ORDER.indexOf(eastSeatPos);
@@ -26,20 +24,23 @@ export function render(app, dom){
   dom.dealerName.textContent = app.runtime.players[app.runtime.roundState.dealerIndex].name;
 
   const ended = !!app.runtime.meta?.gameEnded;
-  if(ended){
-    dom.roundLabel.textContent = `${currentHandLabel(app)} (종료)`;
-  }
   if(dom.chomboBtn) dom.chomboBtn.disabled = ended;
 
   const eastSeatPos = app.runtime.ui?.eastSeatPos ?? 0;
   const physicalToPlayer = buildPhysicalToPlayerMap(eastSeatPos);
 
   dom.seats.forEach(seatEl=>{
-    const physicalSeat = Number(seatEl.dataset.seat);     // 0/1/2/3 (화면 위치)
-    const i = physicalToPlayer[physicalSeat];             // 0/1/2/3 (동/남/서/북)
+    const physicalSeat = Number(seatEl.dataset.seat); // 0/1/2/3 (화면 위치)
+    const i = physicalToPlayer[physicalSeat];         // 0/1/2/3 (동/남/서/북)
     const p = app.runtime.players[i];
 
     const windLabel = WINDS[i];
+    const isEastHere = (physicalSeat === eastSeatPos);
+
+    // ✅ 좌석 카드 클릭으로 “동” 지정
+    seatEl.dataset.action = "set-eastpos";
+    seatEl.dataset.seatpos = String(physicalSeat);
+    seatEl.style.cursor = isEastHere ? "default" : "pointer";
 
     const dealerBadge = (i === app.runtime.roundState.dealerIndex) ? `<span class="badge">친</span>` : "";
     const riichiBadge = p.riichi ? `<span class="badge riichi">리치✓</span>` : "";
@@ -49,15 +50,13 @@ export function render(app, dom){
     const riichiText = p.riichi ? "리치(완료)" : "리치(-1000)";
     const disabledAll = ended ? "disabled" : "";
 
-    const setEastDisabled = (physicalSeat === eastSeatPos) ? "disabled" : "";
-    const setEastText = (physicalSeat === eastSeatPos) ? "동(기준)" : "동 여기로";
-
     seatEl.innerHTML = `
       <div class="player-head">
-        <div class="player-name"><b>${windLabel}</b> <span style="opacity:.85">${p.name}</span></div>
-        <div style="display:flex; gap:6px; align-items:center;">${riichiBadge}${dealerBadge}
-          <button class="btn small" data-action="set-eastpos" data-seatpos="${physicalSeat}" ${setEastDisabled}>${setEastText}</button>
+        <div class="player-name">
+          <b>${windLabel}</b> <span style="opacity:.85">${p.name}</span>
+          ${isEastHere ? `<span style="opacity:.7; font-size:12px; margin-left:6px;">(기준)</span>` : ``}
         </div>
+        <div style="display:flex; gap:6px; align-items:center;">${riichiBadge}${dealerBadge}</div>
       </div>
 
       <div class="score">${p.score.toLocaleString("ko-KR")}</div>
