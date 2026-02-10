@@ -1,8 +1,8 @@
 // js/constants.js
-export const VERSION = "1.6.6";
+export const VERSION = "1.6.7";
 
 // ✅ 업데이트 내역만 바꿀 때는 이것만 증가시키면 됨
-export const UPDATE_NOTES_ID = "2026-02-10-01";
+export const UPDATE_NOTES_ID = "2026-02-10-02";
 
 export const LS = {
   UI_TOPBAR_HIDDEN: "mjp_ui_topbar_hidden_v1",
@@ -47,23 +47,40 @@ export const RELEASE_NOTES = {
   "1.6.6": {
     title: "업데이트 v1.6.6",
     summary: [
-      "전체화면에서 화면이 겹쳐 보이던 문제 수정",
-      "전체화면(가로)에서는 autoscale transform 비활성화",
+      "전체화면에서 화면이 겹쳐 보이던 문제 1차 완화",
+      "전체화면(가로)에서 autoscale transform 비활성화",
+    ],
+    detailsHtml: `
+      <ul style="margin:8px 0 0 18px; line-height:1.6;">
+        <li><b>전체화면 UI 안정화</b>: fullscreen + transform 충돌 완화</li>
+        <li><b>가로 전체화면</b>: transform 비활성화</li>
+        <li><b>세로 전체화면</b>: 강제가로 UI에서 autoscale 유지</li>
+      </ul>
+    `,
+  },
+
+  "1.6.7": {
+    title: "업데이트 v1.6.7",
+    summary: [
+      "가로모드/전체화면에서 화면이 여러 장 겹쳐 보이는 현상 수정",
+      "autoscale transform을 ‘JS가 켤 때만’ 적용하도록 변경",
+      "모바일 vh 튐 방지(100dvh) 적용",
     ],
     detailsHtml: `
       <ul style="margin:8px 0 0 18px; line-height:1.6;">
         <li>
-          <b>전체화면 UI 안정화</b>:
-          autoscale(transform)과 fullscreen 레이아웃 충돌로
-          화면이 2~3장 겹쳐 보이던 현상을 수정했습니다.
+          <b>겹침(고스트) 수정</b>:
+          autoscale의 transform이 CSS 미디어쿼리로 자동 적용되던 구조를 제거하고,
+          JS가 조건을 만족할 때만 transform을 켜도록 변경했습니다.
         </li>
         <li>
-          <b>가로 전체화면</b>:
-          transform을 끄고 100vw × 100vh 레이아웃을 사용합니다.
+          <b>전체화면(가로)</b>:
+          transform을 강제로 끄고, 레이아웃은 뷰포트(100vw/100vh) 기준으로 유지합니다.
         </li>
         <li>
-          <b>세로 전체화면</b>:
-          기존과 동일하게 ‘강제가로 UI’ 모드에서 autoscale을 유지합니다.
+          <b>vh 튐 완화</b>:
+          모바일 주소창/툴바 변화로 레이아웃이 흔들리는 문제를 줄이기 위해
+          100vh 대신 100dvh를 사용합니다.
         </li>
       </ul>
     `,
