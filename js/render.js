@@ -1,18 +1,16 @@
-// js/render.js v1.6.5+ (add east-position mapping + wind label)
+// js/render.js v1.6.5+ (wind mapping by eastSeatPos)
 import { currentHandLabel } from "./state.js";
 import { applyAutoScale } from "./autoscale.js";
 
 const WINDS = ["동", "남", "서", "북"];
-
 // 화면 좌석(data-seat): 0=top, 1=right, 2=bottom, 3=left
-// 반시계(CCW)로 한 바퀴 순서: top -> left -> bottom -> right
+// 반시계(CCW): top -> left -> bottom -> right
 const CCW_PHYSICAL_ORDER = [0, 3, 2, 1];
 
 function buildPhysicalToPlayerMap(eastSeatPos){
   const start = CCW_PHYSICAL_ORDER.indexOf(eastSeatPos);
   const s = start >= 0 ? start : 0;
 
-  // physicalSeatIndex(0..3) => playerIndex(0..3)
   const map = new Array(4);
   for(let k=0;k<4;k++){
     const physical = CCW_PHYSICAL_ORDER[(s + k) % 4]; // k=0(E),1(S),2(W),3(N)
@@ -37,8 +35,8 @@ export function render(app, dom){
   const physicalToPlayer = buildPhysicalToPlayerMap(eastSeatPos);
 
   dom.seats.forEach(seatEl=>{
-    const physicalSeat = Number(seatEl.dataset.seat);       // 0/1/2/3 (화면 위치)
-    const i = physicalToPlayer[physicalSeat];               // 0/1/2/3 (동/남/서/북)
+    const physicalSeat = Number(seatEl.dataset.seat);     // 0/1/2/3 (화면 위치)
+    const i = physicalToPlayer[physicalSeat];             // 0/1/2/3 (동/남/서/북)
     const p = app.runtime.players[i];
 
     const windLabel = WINDS[i];
@@ -51,15 +49,13 @@ export function render(app, dom){
     const riichiText = p.riichi ? "리치(완료)" : "리치(-1000)";
     const disabledAll = ended ? "disabled" : "";
 
-    // 동(East=0)의 화면 위치를 바꾸는 버튼
     const setEastDisabled = (physicalSeat === eastSeatPos) ? "disabled" : "";
     const setEastText = (physicalSeat === eastSeatPos) ? "동(기준)" : "동 여기로";
 
     seatEl.innerHTML = `
       <div class="player-head">
         <div class="player-name"><b>${windLabel}</b> <span style="opacity:.85">${p.name}</span></div>
-        <div style="display:flex; gap:6px; align-items:center;">
-          ${riichiBadge}${dealerBadge}
+        <div style="display:flex; gap:6px; align-items:center;">${riichiBadge}${dealerBadge}
           <button class="btn small" data-action="set-eastpos" data-seatpos="${physicalSeat}" ${setEastDisabled}>${setEastText}</button>
         </div>
       </div>
