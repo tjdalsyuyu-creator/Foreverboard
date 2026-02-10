@@ -1,21 +1,18 @@
-<!-- index.html v1.6.7 (ES Modules) -->
+<!-- index.html v1.6.8 (ES Modules) -->
 <!doctype html>
 <html lang="ko">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Mahjong Score Pointer v1.6.7</title>
-  <link rel="stylesheet" href="css/style.css?v=1.6.7" />
+  <title>Mahjong Score Pointer v1.6.8</title>
+  <link rel="stylesheet" href="css/style.css?v=1.6.8" />
 </head>
 <body>
   <header class="topbar" id="topbar">
-    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.7</span></div>
+    <div class="brand">🀄 Mahjong Score Pointer <span class="ver">v1.6.8</span></div>
     <div class="meta">
       <button id="settingsBtn" class="btn">⚙️ 설정</button>
-
-      <!-- ✅ 업데이트 내역 버튼 -->
       <button id="updatesBtn" class="btn">📝 업데이트</button>
-
       <button id="settleBtn" class="btn">📊 최종정산</button>
       <button id="undoBtn" class="btn">Undo</button>
       <button id="resetBtn" class="btn danger">Reset</button>
@@ -58,13 +55,12 @@
     </section>
   </main>
 
-  <!-- 세로 전체화면 안내 오버레이 -->
   <div id="rotateHintOverlay">
     <div class="box">
       <div class="title">가로로 돌려주세요</div>
       <div class="desc">
-        전체화면에서는 가로가 가장 보기 좋아요.<br/>
-        기기를 가로로 돌리면 자동으로 최적화됩니다.
+        전체화면에서는 가로 UI만 사용합니다.<br/>
+        세로 상태라도 전체화면을 누르면 가로 UI로 표시됩니다.
       </div>
     </div>
   </div>
@@ -80,7 +76,6 @@
     </form>
   </dialog>
 
-  <!-- ✅ ES Module entry -->
-  <script type="module" src="js/main.js?v=1.6.7"></script>
+  <script type="module" src="js/main.js?v=1.6.8"></script>
 </body>
 </html>
