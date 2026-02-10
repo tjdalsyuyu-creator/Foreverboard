@@ -31,7 +31,7 @@ export function bindActions(app, dom){
     if(app.runtime.meta?.gameEnded) return;
 
     const seat = Number(btn.dataset.seat);
-    // ✅ [동 위치 변경] (화면 좌석 기준: 0 top / 1 right / 2 bottom / 3 left)
+        // ✅ 동(East) 화면 위치 변경
     if(action === "set-eastpos"){
       const pos = Number(btn.dataset.seatpos);
       if(!Number.isFinite(pos)) return;
@@ -43,6 +43,7 @@ export function bindActions(app, dom){
       doRerender();
       return;
     }
+
 
     if(action === "riichi"){
       const p = app.runtime.players[seat];
