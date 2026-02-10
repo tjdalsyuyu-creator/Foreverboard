@@ -23,12 +23,27 @@ export function bindActions(app, dom){
   }
 
   document.body.addEventListener("click",(e)=>{
-    const btn = e.target.closest("button");
-    if(!btn) return;
-    const action = btn.dataset.action;
+    const target = e.target.closest("[data-action]");
+if(!target) return;
+const action = target.dataset.action;
     if(!action) return;
 
     if(app.runtime.meta?.gameEnded) return;
+// ✅ 좌석 클릭으로 동(East) 위치 변경
+if(action === "set-eastpos"){
+  const pos = Number(target.dataset.seatpos);
+  if(!Number.isFinite(pos)) return;
+
+  // 같은 자리면 스냅샷/저장 안 함
+  if((app.runtime.ui?.eastSeatPos ?? 0) === pos) return;
+
+  pushSnapshot(app);
+  app.runtime.ui = app.runtime.ui || {};
+  app.runtime.ui.eastSeatPos = pos;
+
+  doRerender();
+  return;
+}
 
     const seat = Number(btn.dataset.seat);
         // ✅ 동(East) 화면 위치 변경
