@@ -1,9 +1,10 @@
 /* ============================
    Foreverboard Unity-like Skin
-   Scope: .fb-unity-skin only
+   Scope: body.fb-unity-skin only
    ============================ */
 
-.fb-unity-skin {
+body.fb-unity-skin {
+  margin: 0;
   min-height: 100vh;
   display: grid;
   place-items: center;
@@ -11,27 +12,27 @@
 }
 
 /* 기본: 16:9 프레임 */
-.fb-unity-skin #fbShell {
+body.fb-unity-skin #fbShell {
   width: min(96vw, calc(96vh * 16 / 9));
   height: calc(min(96vw, calc(96vh * 16 / 9)) * 9 / 16);
   display: grid;
   grid-template-rows: 1fr auto; /* viewport + footer */
   border-radius: 12px;
   background: #151922;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.55);
-  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   overflow: hidden;
 }
 
 /* 전체화면: 비율 고정 해제 */
-.fb-unity-skin #fbShell.fb-fs {
+body.fb-unity-skin #fbShell.fb-fs {
   width: 100vw;
   height: 100vh;
   border-radius: 0;
 }
 
 /* 실제 앱이 들어가는 영역 */
-.fb-unity-skin #fbViewport {
+body.fb-unity-skin #fbViewport {
   position: relative;
   width: 100%;
   height: 100%;
@@ -39,41 +40,52 @@
 }
 
 /* 유니티 footer 느낌 */
-.fb-unity-skin #fbFooter {
+body.fb-unity-skin #fbFooter {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   padding: 8px 12px;
-  background: rgba(0,0,0,0.25);
-  border-top: 1px solid rgba(255,255,255,0.08);
-  color: rgba(255,255,255,0.75);
+  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 12px;
 }
 
-.fb-unity-skin #fbFooter .left {
+body.fb-unity-skin #fbFooter .left {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.fb-unity-skin #fbFooter .dot {
+body.fb-unity-skin #fbFooter .dot {
   width: 8px;
   height: 8px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.35);
+  background: rgba(255, 255, 255, 0.35);
 }
 
-/* (선택) 버튼 기본 톤만 살짝 통일 - 전역 button 건드리지 말고 footer 안에서만 */
-.fb-unity-skin #fbFooter button {
+body.fb-unity-skin #fbFooter .right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* footer 안에서만 버튼 톤 통일 (전역 button 건드리지 않음) */
+body.fb-unity-skin #fbFooter button {
   padding: 6px 10px;
   border-radius: 8px;
-  border: 1px solid rgba(255,255,255,0.15);
-  background: rgba(255,255,255,0.06);
-  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
 }
 
-.fb-unity-skin #fbFooter button:hover {
-  background: rgba(255,255,255,0.10);
+body.fb-unity-skin #fbFooter button:hover {
+  background: rgba(255, 255, 255, 0.10);
+}
+
+/* 모달(dialog) 안전 z-index */
+dialog {
+  z-index: 9999;
 }
