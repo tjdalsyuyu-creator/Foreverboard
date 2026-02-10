@@ -20,13 +20,12 @@ function setUiMode(){
 
   document.body.classList.remove("ui-portrait", "ui-landscape", "ui-fs-landscape");
 
-  // ✅ 전체화면은 무조건 가로 UI만 확장 표시
-  if(fs){
+  if (fs) {
+    // ✅ 전체화면은 무조건 가로 UI
     document.body.classList.add("ui-fs-landscape");
-    return;
+  } else {
+    document.body.classList.add(isLandscape ? "ui-landscape" : "ui-portrait");
   }
-
-  document.body.classList.add(isLandscape ? "ui-landscape" : "ui-portrait");
 }
 
 export function initFullscreen(dom, rerender){
@@ -38,16 +37,13 @@ export function initFullscreen(dom, rerender){
   const update = ()=>{
     const fs = isFullscreen();
 
-    // ✅ UI 모드 결정 (세로/가로/전체화면가로)
-    setUiMode();
-
-    // ✅ fullscreen 상태 플래그(기존 로직 호환)
+    // ✅ fullscreen 플래그
     document.body.classList.toggle("is-fullscreen", fs);
 
-    // ✅ 기존 “세로 전체화면 강제가로”는 이제 사용하지 않음(겹침 원인)
-    // 필요하면 오버레이 정책으로만 남길 수 있지만, 우선 완전 OFF
-    document.body.classList.remove("fs-force-landscape");
+    // ✅ UI 모드 강제 결정 (CSS 섞임 방지)
+    setUiMode();
 
+    // ✅ fullscreen 동안 상단바 자동 숨김(기존 동작 유지)
     if(fs){
       if(localStorage.getItem(LS.AUTO_HIDE_TOPBAR_IN_FS)==null){
         localStorage.setItem(
@@ -64,9 +60,11 @@ export function initFullscreen(dom, rerender){
 
     dom.fullscreenBtn.textContent = fs ? "⛶ 전체화면 해제" : "⛶ 전체화면";
 
-    // ✅ autoscale은 이제 “ui 모드 분리” 구조에서는 사실상 필요 없음
-    // 그래도 남겨두면 일부 기기에서 도움이 될 수 있어 호출은 유지
+    // ✅ autoscale은 “세로 강제 가로 UI” 같은 모드에서만 쓰는 게 안전하지만,
+    //    현재 v1.6.8 구조에서는 ui-portrait/landscape/fullsreen 모두 autoscale을 끔.
+    //    (applyAutoScale 내부에서 가로/전체화면 early return 처리)
     applyAutoScale(dom);
+
     rerender();
   };
 
