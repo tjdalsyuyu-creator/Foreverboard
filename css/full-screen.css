@@ -1,23 +1,15 @@
-/* css/full-screen.css v1.6.6 FIT-TO-SCREEN
-   - 스크롤 허용(overflow auto) 금지
-   - force-landscape에서도 transform만 적용 (한 화면에 맞춤)
-   - ✅ 전체화면(가로)에서 transform 충돌로 화면이 겹치는 현상 방지
-*/
+/* css/full-screen.css v1.6.8 */
 
 /* Fullscreen table height */
 :fullscreen .table { height: 100vh; }
 :-webkit-full-screen .table { height: 100vh; }
 
-/* ✅ 전체화면(가로)에서는 autoscale transform을 끄고, 뷰포트 레이아웃으로 고정
-   - iOS/안드로이드 일부 브라우저에서 transform + fullscreen 조합이
-     중첩 렌더링(화면이 2~3장 겹쳐 보임)을 유발하는 케이스 방지
-   - 세로 전체화면 강제가로UI(fs-force-landscape)에서는 기존대로 transform 허용
-*/
-body.is-fullscreen:not(.fs-force-landscape) .table{
-  transform: none !important;
+/* 전체화면에서는 오버플로우 문제를 일으키지 않도록 */
+body.is-fullscreen{
+  overflow: hidden;
 }
 
-/* Rotate hint overlay */
+/* Rotate hint overlay (현재는 거의 사용 안 함. 필요 시 켜기 가능) */
 #rotateHintOverlay{
   position: fixed;
   inset: 0;
@@ -46,24 +38,4 @@ body.is-fullscreen:not(.fs-force-landscape) .table{
   opacity: 0.9;
   font-size: 14px;
   line-height: 1.4;
-}
-
-/* Force landscape UI */
-body.fs-force-landscape #rotateHintOverlay{ display:flex; }
-
-/* ✅ 세로 전체화면 강제가로UI에서도 transform만 적용 */
-body.fs-force-landscape .table{
-  transform: translate(var(--autoTx, 0px), var(--autoTy, 0px)) scale(var(--autoScale, 1));
-  transform-origin: top left;
-}
-
-/* Bigger touch in force-landscape */
-body.fs-force-landscape .btn{
-  font-size: 18px;
-  padding: 16px 20px;
-  border-radius: 16px;
-}
-body.fs-force-landscape .btn.small{
-  font-size: 16px;
-  padding: 14px 18px;
 }
