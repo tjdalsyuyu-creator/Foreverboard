@@ -122,4 +122,7 @@ export function popSnapshot(app){
   return true;
 }
 
-// ✅ storage.js에서 import
+// ✅ storage.js에서 import하는 deepClone (필수)
+export function deepClone(obj){
+  return JSON.parse(JSON.stringify(obj));
+}
