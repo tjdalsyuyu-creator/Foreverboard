@@ -22,13 +22,19 @@ body.topbar-hidden .table{ height: 100vh; }
 /* Main table */
 .table{
   position: relative;
-  height: calc(100vh - 56px);
+
+  /* ✅ 모바일 주소창/툴바 변화로 vh가 튀는 문제 방지 */
+  height: calc(100dvh - 56px);
+
   display: grid;
   grid-template-rows: 1fr 1.2fr 1fr;
   grid-template-columns: 1fr 1.2fr 1fr;
   gap: 10px;
   padding: 10px;
 }
+
+/* 상단바 숨김 시 */
+body.topbar-hidden .table{ height: 100dvh; }
 
 /* seat cards */
 .seat{
