@@ -1,0 +1,3 @@
+[submodule "refs/mahjonpoiter"]
+	path = refs/mahjonpoiter
+	url = https://github.com/Soobak123/MahjongPointer.git
